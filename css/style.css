@@ -1,0 +1,3841 @@
+/* ==========================================================================
+   webflux – Hero
+   ========================================================================== */
+
+:root {
+  --bg: #05070d;
+  --fg: #fafafa;
+  --muted: rgba(255, 255, 255, 0.62);
+  --font: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --lh: 1.25;          /* Zeilenhöhe der Headline = Fenster des Wortrollers; Inter braucht ~1.22em, sonst werden Unterlängen (g) abgeschnitten */
+  --headline-color: #ffffff; /* Feste Farbe der rollenden Headline-Wörter */
+  --hero-vh: 320;      /* Scroll-Strecke, in der der Hero festgepinnt bleibt */
+  --hero-lift: -6vh;   /* Wie weit der Intro-Block (Headline, Text, Buttons) über der Mitte sitzt */
+  --nav-z: 70;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html {
+  background: var(--bg);
+  color: var(--fg);
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font);
+  font-size: 16px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+}
+
+a { color: inherit; text-decoration: none; }
+svg { display: block; flex: none; }
+
+.sr-only {
+  position: absolute;
+  width: 1px; height: 1px;
+  padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0 0 0 0);
+  white-space: nowrap; border: 0;
+}
+
+/* --------------------------------------------------------------------------
+   Schwebende Navigation
+   -------------------------------------------------------------------------- */
+
+.floating-nav {
+  position: fixed;
+  top: 22px; left: 50%;
+  z-index: var(--nav-z);
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 4px 4px 4px 16px;
+  border-radius: 999px;
+  background:
+    linear-gradient(90deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.05)),
+    rgba(0, 0, 0, 0.86);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.8), 0 12px 32px rgba(0, 0, 0, 0.35);
+  transform: translate(-50%, -12px);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.35s ease, transform 0.35s ease;
+}
+
+.floating-nav.is-visible {
+  opacity: 1;
+  transform: translate(-50%, 0);
+  pointer-events: auto;
+}
+
+.floating-nav__link {
+  font-size: 14px;
+  letter-spacing: -0.01em;
+  color: rgba(255, 255, 255, 0.42);
+  transition: color 0.2s ease;
+}
+
+.floating-nav__link:hover,
+.floating-nav__link.is-active { color: #fff; }
+
+.floating-nav__cta {
+  display: inline-flex;
+  align-items: center;
+  height: 34px;
+  padding: 0 15px;
+  border-radius: 999px;
+  background: #fff;
+  color: #111;
+  font-size: 13.5px;
+  font-weight: 500;
+  transition: transform 0.2s ease, background 0.2s ease;
+}
+
+.floating-nav__cta:hover { background: #f2f2f2; transform: translateY(-1px); }
+
+/* --------------------------------------------------------------------------
+   Hero – Layout & Video
+   -------------------------------------------------------------------------- */
+
+.hero {
+  position: relative;
+  height: calc(var(--hero-vh) * 1vh);
+  height: calc(var(--hero-vh) * 1svh);
+  background: var(--bg);
+}
+
+.hero__sticky {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  height: 100svh;
+  overflow: hidden;
+}
+
+.hero__frame {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: #000;
+  will-change: clip-path;
+}
+
+.hero__video-stack {
+  position: absolute;
+  inset: 0;
+  isolation: isolate; /* eigener Stapelkontext: die z-Indizes der Video-Ebenen bleiben unter Overlay & Text */
+}
+
+.hero__video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform: scale(1.01); /* verdeckt die 2px dunkle Spalte am rechten Rand des Clips */
+  transform-origin: center;
+}
+
+.hero__video--blend {
+  opacity: 0; /* zweite Ebene fürs Überblenden, Deckkraft setzt js/main.js */
+}
+
+.hero__canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 2; /* über den Video-Ebenen (z-index 0/1 setzt js/main.js); bis zum ersten Bild transparent, dann scheint das Poster durch */
+  /* kein Transform: den 1,01-fachen Zoom rechnet js/frames.js in den Bildausschnitt, so muss die GPU die große Ebene nicht jedes Mal neu skalieren */
+}
+
+.hero__overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(60% 50% at 50% 42%, rgba(4, 8, 20, 0.28), transparent 70%),
+    linear-gradient(180deg, rgba(4, 8, 20, 0.62) 0%, rgba(4, 8, 20, 0.32) 38%, rgba(4, 8, 20, 0) 62%, rgba(4, 8, 20, 0.3) 100%);
+}
+
+/* --------------------------------------------------------------------------
+   Hero – Intro (Headline, Wortroller, Buttons)
+   -------------------------------------------------------------------------- */
+
+.hero__content {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 0 20px;
+  transform: translateY(var(--hero-lift));
+  will-change: opacity, transform;
+}
+
+.hero__title {
+  margin: 0 0 8px;
+  font-size: clamp(48px, 8vw, 92px);
+  font-weight: 600;
+  line-height: var(--lh);
+  letter-spacing: -0.035em;
+  color: #fafafa;
+  text-shadow: 0 2px 24px rgba(0, 0, 0, 0.35);
+}
+
+.hero__roll {
+  display: block;
+  height: calc(var(--lh) * 1em);
+  overflow: hidden; /* Wörter laufen ohne weiche Kanten ein und aus */
+}
+
+.hero__roll-track {
+  display: block;
+  transform: translateY(calc(var(--i, 0) * var(--lh) * -1em));
+  transition: transform 0.8s cubic-bezier(0.76, 0, 0.24, 1);
+  will-change: transform;
+}
+
+.hero__word {
+  display: block;
+  height: calc(var(--lh) * 1em);
+  white-space: nowrap;
+  color: var(--headline-color);
+  text-shadow: 0 2px 20px rgba(0, 0, 0, 0.45);
+}
+
+/* Einlaufendes Wort: startet unscharf und wird scharf, während es einrastet
+   (gleiche Dauer und Kurve wie die Rollbewegung; js/main.js setzt die Klasse) */
+.hero__word.is-entering {
+  animation: word-blur-in 0.8s cubic-bezier(0.5, 0, 0.3, 1) backwards;
+}
+
+@keyframes word-blur-in {
+  from { filter: blur(0.16em); opacity: 0.5; }
+  to   { filter: blur(0);      opacity: 1; }
+}
+
+/* Blur-Wechsel (Standard, js/main.js setzt .hero__roll--fade): kein Rollen, die Wörter
+   liegen übereinander. Das alte Wort wird unscharf und verschwindet, kurz danach
+   erscheint das nächste unscharf und wird scharf. */
+.hero__roll--fade { overflow: visible; }   /* sonst wird die Unschärfe oben und unten hart abgeschnitten */
+
+.hero__roll--fade .hero__roll-track {
+  display: grid;
+  transform: none;
+  transition: none;
+}
+
+.hero__roll--fade .hero__word {
+  grid-area: 1 / 1;
+  opacity: 0;
+}
+
+.hero__roll--fade .hero__word.is-current { opacity: 1; }
+
+.hero__roll--fade .hero__word.is-leaving {
+  animation: word-blur-away 1.1s cubic-bezier(0.4, 0, 0.6, 1) both;
+}
+
+.hero__roll--fade .hero__word.is-entering {
+  animation: word-unblur 1.5s cubic-bezier(0.3, 0.1, 0.3, 1) 0.7s backwards;
+}
+
+@keyframes word-blur-away {
+  from { filter: blur(0);      opacity: 1; }
+  to   { filter: blur(0.22em); opacity: 0; }
+}
+
+@keyframes word-unblur {
+  from { filter: blur(0.22em); opacity: 0; }
+  to   { filter: blur(0);      opacity: 1; }
+}
+
+.hero__sub {
+  max-width: 520px;
+  margin: 0 0 26px;
+  font-size: clamp(13px, 1.1vw, 15px);
+  font-weight: 400;
+  line-height: 1.5;
+  letter-spacing: 0;
+  color: rgba(255, 255, 255, 0.7);
+  text-shadow: 0 1px 12px rgba(0, 0, 0, 0.4);
+}
+
+.hero__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  height: 44px;
+  padding: 0 20px;
+  border-radius: 11px;
+  font-size: 15px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  transition: transform 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+}
+
+.btn:hover { transform: translateY(-1px); }
+.btn:active { transform: translateY(0); }
+
+.btn--primary {
+  background: #fff;
+  color: #121212;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25), 0 10px 28px rgba(0, 0, 0, 0.22);
+}
+
+.btn--primary:hover { background: #f4f4f4; }
+
+.btn--secondary {
+  background: rgba(12, 14, 22, 0.82);
+  color: #fff;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.16), 0 10px 28px rgba(0, 0, 0, 0.18);
+}
+
+.btn--secondary:hover { background: rgba(22, 26, 38, 0.86); }
+
+.hero__hint {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 18px;
+  font-size: 13px;
+  color: var(--muted);
+  transition: color 0.2s ease;
+}
+
+.hero__hint:hover { color: #fff; }
+
+/* --------------------------------------------------------------------------
+   Hero – Demo-Block (erscheint beim Scrollen)
+   -------------------------------------------------------------------------- */
+
+.hero__demo {
+  position: absolute;
+  left: 0; right: 0; top: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 0 20px;
+  transform: translateY(-50%);
+  opacity: 0;
+  pointer-events: none;
+  will-change: opacity, transform;
+}
+
+.hero__demo-kicker {
+  margin: 0 0 8px;
+  font-size: 12.5px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.hero__demo-text {
+  margin: 0 0 22px;
+  max-width: 22ch;
+  font-size: clamp(22px, 3vw, 32px);
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: -0.03em;
+  text-shadow: 0 2px 20px rgba(0, 0, 0, 0.35);
+}
+
+/* Button im Stil von Supabase "Request a demo" */
+.btn-demo {
+  display: inline-flex;
+  align-items: center;
+  height: 36px;
+  padding: 0 16px;
+  border-radius: 6px;
+  font-size: 13.5px;
+  font-weight: 500;
+  color: #ededed;
+  background: rgba(28, 28, 28, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+}
+
+.btn-demo:hover {
+  background: rgba(38, 38, 38, 0.92);
+  border-color: rgba(255, 255, 255, 0.42);
+  transform: translateY(-1px);
+}
+
+/* --------------------------------------------------------------------------
+   Hero – Scroll-Hinweis
+   -------------------------------------------------------------------------- */
+
+.hero__cue {
+  position: absolute;
+  bottom: 26px; left: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  font-size: 11.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.55);
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.hero__cue svg { animation: cue-bounce 1.8s ease-in-out infinite; }
+
+@keyframes cue-bounce {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(5px); }
+}
+
+/* --------------------------------------------------------------------------
+   Responsive
+   -------------------------------------------------------------------------- */
+
+@media (max-width: 800px) {
+  :root { --hero-vh: 260; --hero-lift: -5vh; }
+  .hero__title { font-size: clamp(40px, 13vw, 60px); margin-bottom: 6px; }
+  .hero__sub { margin-bottom: 22px; font-size: 13.5px; }
+  .hero__sub br { display: none; }
+  .btn { height: 42px; font-size: 14.5px; }
+}
+
+@media (max-width: 640px) {
+  .floating-nav { gap: 16px; padding-left: 14px; }
+  .floating-nav__link--desktop { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero__roll-track { transition: none; }
+  .hero__word.is-entering,
+  .hero__roll--fade .hero__word.is-entering,
+  .hero__roll--fade .hero__word.is-leaving { animation: none; }
+  .hero__cue svg { animation: none; }
+  .floating-nav, .btn, .btn-demo, .floating-nav__cta { transition: none; }
+}
+
+/* ==========================================================================
+   Sektion „Mehr als nur eine Website“
+   Oben Überschrift und wechselnde Zeile, darunter der Video-Platzhalter, unten
+   der Liquid-Glass-Schalter (Feinheiten des Aufbaus: Block .more--stack unten).
+   Zustände setzt js/more.js: .more.is-in (Sektion sichtbar), .is-active an
+   Punkt/Text/Video, am Schalter is-seed -> is-grow -> is-open -> is-ready.
+   ========================================================================== */
+
+.more {
+  position: relative;
+  /* Seitenabstand = Rand der Hero-Karte am Ende des Scrollens (--frame-side setzt js/main.js),
+     damit Text und Video nicht breiter sind als das Bild darüber */
+  padding: 140px var(--frame-side, 20px) 120px;
+  overflow: clip; /* clip statt hidden: hidden würde den Sticky-Schalter an die Sektion binden */
+  background: var(--bg);
+}
+
+/* Weiches Leuchten hinter Video und Schalter – gibt dem Glas etwas zum Brechen */
+.more__glow {
+  position: absolute;
+  left: 50%;
+  top: 48%;
+  width: min(1100px, 130vw);
+  height: 720px;
+  transform: translate(-32%, -50%);
+  background: radial-gradient(closest-side, rgba(120, 150, 255, 0.16), rgba(120, 150, 255, 0.05) 45%, transparent 75%);
+  filter: blur(40px);
+  pointer-events: none;
+}
+
+.more__inner {
+  position: relative;
+  max-width: 1240px;
+  margin: 0 auto;
+}
+
+/* Einblenden beim Reinscrollen */
+.more__media {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.8s ease, transform 0.9s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.more.is-in .more__media { opacity: 1; transform: none; transition-delay: 0.1s; }
+
+/* --------------------------------------------------------------------------
+   Oben: Überschrift und wechselnde Zeile
+   -------------------------------------------------------------------------- */
+
+.more__title {
+  margin: 0 0 34px;
+  font-size: clamp(34px, 4.2vw, 56px);
+  font-weight: 600;
+  line-height: 1.08;
+  letter-spacing: -0.035em;
+  color: #fafafa;
+}
+
+/* Die drei Detailblöcke liegen übereinander, nur der aktive ist sichtbar */
+.more__details {
+  display: grid;
+  align-items: start;
+}
+
+.more__detail,
+.more__caption {
+  grid-area: 1 / 1;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(10px);
+  transition: opacity 0.4s ease, transform 0.4s ease, visibility 0s linear 0.4s;
+}
+
+.more__detail.is-active,
+.more__caption.is-active {
+  opacity: 1;
+  visibility: visible;
+  transform: none;
+  transition-delay: 0.15s, 0.15s, 0s;
+}
+
+/* Unter dem Video: je Punkt ein kurzer Text, gleiches Wechseln wie bei der Zeile oben.
+   Alle drei liegen übereinander, die Höhe richtet sich nach dem längsten. */
+.more__captions {
+  display: grid;
+  max-width: 640px;
+  margin: clamp(26px, 3.4vw, 40px) auto 0;
+  text-align: center;
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.8s ease, transform 0.9s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.more.is-in .more__captions { opacity: 1; transform: none; transition-delay: 0.2s; }
+
+.more__caption {
+  margin: 0;
+  font-size: clamp(15px, 1.25vw, 17px);
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.58);
+}
+
+/* --------------------------------------------------------------------------
+   Darunter: Video-Bühne (Platzhalter, später echte Videos)
+   -------------------------------------------------------------------------- */
+
+.more__stage {
+  position: relative;
+  display: grid;
+  aspect-ratio: 16 / 10;
+  border-radius: 22px;
+  background: #0b0e16;
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 30px 80px rgba(0, 0, 0, 0.55);
+  overflow: hidden;
+}
+
+.more__screen {
+  grid-area: 1 / 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  opacity: 0;
+  visibility: hidden;
+  transform: scale(0.985);
+  transition: opacity 0.5s ease, transform 0.5s ease, visibility 0s linear 0.5s;
+}
+
+.more__screen.is-active {
+  opacity: 1;
+  visibility: visible;
+  transform: none;
+  transition-delay: 0s;
+}
+
+/* Fensterleiste mit drei Punkten */
+.more__chrome {
+  display: flex;
+  gap: 6px;
+  padding: 14px 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.more__chrome i {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.more__placeholder {
+  position: relative;
+  flex: 1;
+  display: grid;
+  place-items: center;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* Das echte Video füllt die Fläche. js/more.js startet und pausiert es (nur wenn man es sieht); der Nutzer soll
+   es nicht anhalten können: keine Bedienelemente im Markup, dazu reagiert es nicht auf Klick, Tippen oder Rechtsklick. */
+.more__video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* Design: helles 16:9-Video (Hintergrund #fdfdfd). Die Bühne ist breiter als 16:9, das Video füllt sie
+   (cover) und wird mittig oben und unten beschnitten; die Fläche hat dieselbe Farbe wie das Video,
+   falls beim Laden kurz etwas durchscheint. */
+.more__screen--film .more__placeholder { background: #fdfdfd; }
+.more__screen--film .more__video { object-fit: cover; object-position: 50% 50%; }
+
+.more__soon {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  height: 38px;
+  padding: 0 16px 0 8px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+  color: rgba(255, 255, 255, 0.86);
+  background: rgba(10, 12, 20, 0.72);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.14), 0 10px 30px rgba(0, 0, 0, 0.35);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+}
+
+.more__play {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #fff;
+  color: #111;
+}
+
+/* Skelette: deuten an, was das jeweilige Video später zeigt */
+.more__skeleton {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  padding: 7%;
+  gap: 12px;
+  pointer-events: none;
+}
+
+.more__skeleton i {
+  display: block;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.055);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.045);
+}
+
+/* Design: großes Bild links, Textzeilen rechts */
+.more__skeleton--design {
+  grid-template-columns: 1.25fr 1fr;
+  grid-template-rows: 1fr auto auto auto 1fr;
+  column-gap: 8%;
+  row-gap: 14px;
+}
+.more__skeleton--design i:nth-child(1) {
+  grid-row: 1 / -1;
+  background: linear-gradient(135deg, rgba(140, 160, 255, 0.16), rgba(255, 255, 255, 0.04) 60%, rgba(200, 150, 255, 0.1));
+}
+.more__skeleton--design i:nth-child(2) { grid-row: 2; height: 26px; width: 85%; }
+.more__skeleton--design i:nth-child(3) { grid-row: 3; height: 12px; width: 100%; }
+.more__skeleton--design i:nth-child(4) { grid-row: 4; height: 12px; width: 62%; }
+
+/* Code: eingerückte Zeilen */
+.more__skeleton--code {
+  align-content: center;
+  gap: 11px;
+}
+.more__skeleton--code i { height: 10px; border-radius: 5px; }
+.more__skeleton--code i:nth-child(1) { width: 34%; }
+.more__skeleton--code i:nth-child(2) { width: 58%; margin-left: 6%; }
+.more__skeleton--code i:nth-child(3) { width: 44%; margin-left: 12%; background: rgba(140, 200, 255, 0.11); }
+.more__skeleton--code i:nth-child(4) { width: 66%; margin-left: 12%; }
+.more__skeleton--code i:nth-child(5) { width: 28%; margin-left: 6%; background: rgba(140, 200, 255, 0.11); }
+.more__skeleton--code i:nth-child(6) { width: 52%; margin-left: 6%; }
+.more__skeleton--code i:nth-child(7) { width: 18%; }
+
+/* Dashboard: drei Kacheln, darunter eine breite Fläche */
+.more__skeleton--dashboard {
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: minmax(0, 0.55fr) minmax(0, 1fr);
+}
+.more__skeleton--dashboard i:nth-child(4) { grid-column: 1 / -1; }
+
+/* --------------------------------------------------------------------------
+   Unten: Liquid-Glass-Schalter (nur Punkte)
+   Einfahren: als Punkt wachsen (is-grow), dann nach links und rechts breit
+   werden (is-open), zum Schluss freie Breite (is-ready). Beim Hochscrollen
+   läuft das rückwärts (is-closing -> is-grow -> is-seed).
+   In Ruhe ist die Leiste flach (30px); beim Hover wächst sie auf 48px, und der
+   einzelne Punkt darunter wird breiter und zeigt seinen Namen. Nur der aktive
+   Punkt ist eine Pille, die anderen sind Kreise.
+   -------------------------------------------------------------------------- */
+
+.more__switch {
+  position: sticky;
+  bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+  z-index: 5;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 48px; /* Höhe der aufgeklappten Leiste: sie wächst um ihre Mitte, ohne Layout-Sprung */
+  margin-top: clamp(48px, 7vh, 80px);
+  pointer-events: none; /* die volle Breite darf nichts blockieren, nur die Pille selbst */
+}
+
+/* Leuchten direkt hinter dem Schalter – das Glas hat so etwas zum Brechen; erst an, wenn der Punkt erscheint */
+.more__switch::before {
+  content: "";
+  opacity: 0;
+  transition: opacity 0.6s ease;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 360px;
+  height: 150px;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(150, 175, 255, 0.22), rgba(150, 175, 255, 0.06) 55%, transparent 100%);
+  filter: blur(22px);
+  pointer-events: none;
+}
+
+.more__switch.is-on::before { opacity: 1; }
+
+.glass-switch {
+  /* Ruhe: flache Leiste. Beim Hover (oder Tastaturfokus, oder ohne Maus) die großen Werte weiter unten.
+     Nur der aktive Punkt ist eine Pille (--dot-w breit), die anderen sind Kreise (--dot). */
+  --dot: 18px;      /* Durchmesser der Kreise = Höhe aller Punkte */
+  --dot-w: 42px;    /* Breite der aktiven Pille */
+  --pad: 6px;
+  --gap: 8px;
+  --count: 3;       /* Anzahl der Punkte, setzt js/more.js */
+  --seed: calc(var(--dot) + 2 * var(--pad));   /* Breite des Startpunkts (ein Kreis, so hoch wie die Pille) */
+  --sw: calc(var(--dot-w) + (var(--count) - 1) * (var(--dot) + var(--gap)) + 2 * var(--pad)); /* Breite mit allen Punkten */
+  z-index: 1;
+  pointer-events: auto;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: var(--gap);
+  height: var(--seed);
+  padding: var(--pad);
+  border-radius: 999px;
+  color: #fff;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.13), rgba(255, 255, 255, 0.05)),
+    rgba(16, 18, 28, 0.55);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.26),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.28),
+    0 0 0 1px rgba(255, 255, 255, 0.09),
+    0 18px 44px rgba(0, 0, 0, 0.45);
+  -webkit-backdrop-filter: blur(18px) saturate(160%);
+  backdrop-filter: blur(18px) saturate(160%);
+  white-space: nowrap;
+  overflow: hidden;
+  transition:
+    width 0.7s cubic-bezier(0.76, 0, 0.24, 1),
+    transform 0.55s cubic-bezier(0.34, 1.56, 0.64, 1),
+    opacity 0.25s ease,
+    height 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+    padding 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+    gap 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Aufgeklappt: beim Hover, bei Tastaturfokus (nicht nach Mausklick, sonst bliebe sie offen)
+   und auf Geräten ohne Maus dauerhaft. Getrennte Regeln, damit ältere Browser ohne :has()
+   wenigstens den Hover behalten. */
+.glass-switch:hover {
+  --dot: 32px;
+  --dot-w: 60px;
+  --pad: 8px;
+  --gap: 10px;
+}
+
+.glass-switch:has(:focus-visible) {
+  --dot: 32px;
+  --dot-w: 60px;
+  --pad: 8px;
+  --gap: 10px;
+}
+
+@media (hover: none) {
+  .glass-switch {
+    --dot: 32px;
+    --dot-w: 60px;
+    --pad: 8px;
+    --gap: 10px;
+  }
+}
+
+/* Glanzlicht oben links – der „flüssige“ Look */
+.glass-switch::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background:
+    radial-gradient(120% 90% at 18% 0%, rgba(255, 255, 255, 0.2), transparent 55%),
+    radial-gradient(80% 60% at 85% 100%, rgba(255, 255, 255, 0.07), transparent 60%);
+  pointer-events: none;
+}
+
+/* Ein- und Ausfahr-Zustände (setzt js/more.js) */
+.glass-switch.is-seed {
+  width: var(--seed);
+  transform: scale(0);
+  opacity: 0;
+  /* Rückweg: der Punkt zieht sich ohne Überschwingen zusammen */
+  transition: width 0s, transform 0.4s cubic-bezier(0.55, 0, 0.8, 0.2), opacity 0.3s ease 0.1s,
+              height 0.35s ease, padding 0.35s ease, gap 0.35s ease;
+}
+.glass-switch.is-grow  { width: var(--seed); transform: scale(1); opacity: 1; }
+.glass-switch.is-open  { width: var(--sw, auto); transform: scale(1); opacity: 1; }
+.glass-switch.is-ready { width: auto; overflow: visible; }
+
+/* Rückwärts (Hochscrollen): erst verschwinden die Punkte, dann schrumpft die Pille */
+.glass-switch.is-closing { transition-delay: 0.12s, 0s, 0s, 0s, 0s, 0s; }
+
+.glass-switch__item {
+  --d: 0s;
+  --w: var(--dot-w); /* Breite mit sichtbarem Namen, misst js/more.js */
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: var(--dot);   /* Kreis; die aktive Pille bekommt --dot-w */
+  height: var(--dot);
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  font: inherit;
+  color: #fff;
+  background: rgba(255, 255, 255, 0.16);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.3),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.22),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+  overflow: hidden;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    width 0.45s cubic-bezier(0.76, 0, 0.24, 1),
+    background-color 0.25s ease,
+    opacity 0.35s ease var(--d),
+    transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) var(--d),
+    height 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Punkte sind erst da, wenn der Schalter aufgeht – der mittlere zuerst, die äußeren danach */
+.glass-switch.is-seed .glass-switch__item,
+.glass-switch.is-grow .glass-switch__item {
+  opacity: 0;
+  transform: scale(0.4);
+}
+
+.glass-switch.is-open .glass-switch__item {
+  --d: calc(0.18s + var(--n, 0) * 0.07s);
+}
+
+/* Beim Schließen umgekehrt: die äußeren zuerst */
+.glass-switch.is-closing .glass-switch__item {
+  --d: calc((1 - var(--n, 0)) * 0.06s);
+  transition-duration: 0.45s, 0.25s, 0.2s, 0.3s, 0.35s;
+}
+
+/* Name: liegt mittig im Punkt und wird sichtbar, sobald der Punkt breit wird */
+.glass-switch__label {
+  position: relative;
+  z-index: 1; /* über der Fortschritts-Füllung */
+  flex: none;
+  padding: 0 14px;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+/* Hover / Tastaturfokus: Punkt wird breit und zeigt den Namen */
+.glass-switch__item:hover,
+.glass-switch__item:focus-visible {
+  width: max(var(--dot-w), var(--w));
+  background: rgba(255, 255, 255, 0.24);
+}
+
+.glass-switch__item:hover .glass-switch__label,
+.glass-switch__item:focus-visible .glass-switch__label {
+  opacity: 1;
+  transition-delay: 0.1s;
+}
+
+.glass-switch__item:active { transform: scale(0.96); }
+
+/* Aktiver Punkt: Pille statt Kreis, heller Ring mit Abstand, wie im Vorbild */
+.glass-switch__item.is-active {
+  width: var(--dot-w);
+  background: rgba(255, 255, 255, 0.22);
+  outline: 2px solid rgba(255, 255, 255, 0.95);
+  outline-offset: 2px;
+}
+
+/* Fortschritt bis zum nächsten Punkt: die aktive Pille füllt sich von links.
+   --progress (0 bis 1) setzt js/more.js: bei einem Panel mit Video die Abspielposition des Videos,
+   sonst die verstrichene Zeit. Ist das Video zu Ende (oder die Zeit um), schaltet js/more.js weiter. */
+.glass-switch__item.is-active::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: rgba(255, 255, 255, 0.3);
+  clip-path: inset(0 calc((1 - var(--progress, 0)) * 100%) 0 0);
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+}
+
+/* Ohne Autoplay (prefers-reduced-motion) keine Füllung */
+.glass-switch.is-static .glass-switch__item.is-active::after { display: none; }
+
+/* Solange der Name zu sehen ist, tritt die Füllung zurück */
+.glass-switch__item.is-active:hover::after,
+.glass-switch__item.is-active:focus-visible::after { opacity: 0.5; }
+
+.glass-switch__item.is-active:hover,
+.glass-switch__item.is-active:focus-visible {
+  width: max(var(--dot-w), var(--w));
+}
+
+.glass-switch__item:focus-visible {
+  outline: 2px solid #9ec0ff;
+  outline-offset: 3px;
+}
+
+/* --------------------------------------------------------------------------
+   Responsive & reduzierte Bewegung
+   -------------------------------------------------------------------------- */
+
+@media (max-width: 900px) {
+  .more { padding: 96px var(--frame-side, 20px) 88px; }
+  .more__switch { margin-top: 40px; }
+  .more__glow { transform: translate(-50%, -50%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .more__media, .more__switch, .more__captions,
+  .more__detail, .more__caption, .more__screen,
+  .glass-switch, .glass-switch__item, .glass-switch__label { transition: none; }
+}
+
+/* ==========================================================================
+   Kompakter Aufbau der Sektion (.more--stack)
+   Oben nur Überschrift und eine kurze Zeile, darunter das Video über die volle
+   Breite, unten der Schalter. Diese Fassung hat der Nutzer am 2026-09-15 aus
+   zwei Entwürfen gewählt; die zweispaltige Fassung (Text links, Video rechts)
+   ist mitsamt Versionsschalter entfallen.
+   ========================================================================== */
+
+/* Kompakt genug, damit Überschrift und Video zusammen auf einen Bildschirm passen */
+.more--stack {
+  padding-top: clamp(96px, 11vh, 132px);
+  padding-bottom: clamp(80px, 9vh, 110px);
+}
+
+/* Kein seitlicher Versatz des Leuchtens, die Sektion ist mittig aufgebaut */
+.more--stack .more__glow {
+  top: 52%;
+  transform: translate(-50%, -50%);
+}
+
+/* Oben: Überschrift + eine wechselnde Zeile, mittig und schmal */
+.more--stack .more__head {
+  max-width: 720px;
+  margin: 0 auto clamp(34px, 4.5vw, 56px);
+  text-align: center;
+  /* gleiches Einblenden wie in Version A */
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.8s ease, transform 0.9s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.more--stack.is-in .more__head { opacity: 1; transform: none; }
+
+.more--stack .more__title { margin: 0 0 12px; }
+
+.more--stack .more__detail {
+  margin: 0;
+  font-size: clamp(16px, 1.5vw, 19px);
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.66);
+}
+
+/* Darunter: Video – hier klebt nichts, es scrollt einfach mit */
+.more--stack .more__media {
+  position: static;
+  align-self: auto;
+}
+
+/* Video über die volle Bildschirmbreite, ohne abgerundete Ecken. Die Sektion hat links und rechts
+   --frame-side als Polsterung; der negative Rand holt die Bühne bis an den Bildschirmrand.
+   Die Höhe bleibt die der Spaltenbreite (16:9 von .more__inner, also wie das Hero-Video breit ist):
+   100cqw ist die Breite von .more__media, nicht der Bühne. Das Video füllt die Fläche (cover) und wird
+   dadurch oben und unten beschnitten. Der vw-Wert davor ist nur der Rückfall ohne Container-Einheiten
+   (ca. 9px zu hoch wegen des Scrollbalkens). */
+.more--stack .more__media { container-type: inline-size; }
+
+.more--stack .more__stage {
+  margin-inline: calc(-1 * var(--frame-side, 20px));
+  aspect-ratio: auto;
+  height: calc((100vw - 2 * var(--frame-side, 20px)) * 9 / 16);
+  height: calc(100cqw * 9 / 16);
+  border-radius: 0;
+}
+
+
+/* ==========================================================================
+   Sektion „Unser Dashboard“
+   Aufbau: Überschrift, kurze Beschreibung, Widget, darunter die Seitenwahl.
+   Das Widget ist ein Nachbau des Kunden-Dashboards und bringt dafür seine
+   eigenen Farbwerte mit (--d-*, identisch mit dem echten Dashboard), damit es
+   sich als eigene Anwendung vom Seitenhintergrund absetzt.
+   Zustände setzt js/dashboard.js: .dash.is-in (Sektion im Bild), .is-active an
+   Seitenwahl, Sidebar-Punkt und Seite.
+   Innen wird nach Breite des Widgets umgebrochen (@container), nicht nach
+   Fensterbreite – so stimmt der Aufbau in jeder Spaltenbreite.
+   ========================================================================== */
+
+.dash {
+  position: relative;
+  padding: 140px var(--frame-side, 20px) 130px;
+  background: var(--bg);
+  overflow: clip;
+
+  /* Farben des echten Dashboards */
+  --d-bg: #09090b;
+  --d-card: #121214;
+  --d-border: #27272a;
+  --d-border-hover: #3f3f46;
+  --d-text: #f4f4f5;
+  --d-mute: #a1a1aa;
+  --d-faint: #71717a;
+  --d-in: #ffffff;                    /* Einnahmen / positive Werte */
+  --d-out: rgba(255, 255, 255, 0.22); /* Ausgaben */
+}
+
+/* Weiches Leuchten hinter dem Widget – wie in der Sektion darüber */
+.dash__glow {
+  position: absolute;
+  left: 50%;
+  top: 46%;
+  width: min(1200px, 130vw);
+  height: 760px;
+  transform: translate(-50%, -50%);
+  background: radial-gradient(closest-side, rgba(120, 150, 255, 0.14), rgba(120, 150, 255, 0.04) 45%, transparent 75%);
+  filter: blur(40px);
+  pointer-events: none;
+}
+
+.dash__inner {
+  position: relative;
+  max-width: 1240px;
+  margin: 0 auto;
+}
+
+/* Das hidden-Attribut muss in dieser Sektion gewinnen: fast alle Bausteine
+   setzen selbst display: flex oder grid und wuerden es sonst uebergehen
+   (js/dashboard.js blendet damit Karten, Leerhinweise und Seiten aus). */
+.dash [hidden] { display: none !important; }
+
+/* --------------------------------------------------------------------------
+   Oben: Überschrift + kurze Beschreibung
+   -------------------------------------------------------------------------- */
+
+.dash__intro {
+  max-width: 720px;
+  margin: 0 auto clamp(34px, 4.5vw, 54px);
+  text-align: center;
+}
+
+.dash__title {
+  margin: 0 0 16px;
+  font-size: clamp(34px, 4.2vw, 56px);
+  font-weight: 600;
+  line-height: 1.08;
+  letter-spacing: -0.035em;
+  color: #fafafa;
+}
+
+.dash__lead {
+  margin: 0 auto;
+  max-width: 60ch;
+  font-size: 15.5px;
+  line-height: 1.65;
+  color: rgba(255, 255, 255, 0.66);
+}
+
+/* Einblenden beim Reinscrollen (gleiche Handschrift wie .more) */
+.dash__intro,
+.dash__widget,
+.dash__pager {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.8s ease, transform 0.9s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.dash.is-in .dash__intro,
+.dash.is-in .dash__widget,
+.dash.is-in .dash__pager { opacity: 1; transform: none; }
+.dash.is-in .dash__widget { transition-delay: 0.1s; }
+.dash.is-in .dash__pager  { transition-delay: 0.2s; }
+
+/* --------------------------------------------------------------------------
+   Das Widget: Fenster mit Leiste, Seitenleiste und Bildschirm
+   -------------------------------------------------------------------------- */
+
+.dash__widget {
+  container: dashapp / inline-size;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  height: clamp(520px, 72svh, 700px);
+  border-radius: 22px;
+  background: var(--d-bg);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 30px 80px rgba(0, 0, 0, 0.55);
+  overflow: hidden;
+  color: var(--d-text);
+}
+
+/* Fensterleiste */
+.dash__chrome {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 12px;
+  padding: 0 14px;
+  height: 42px;
+  flex: none;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.dash__dots { display: flex; gap: 6px; }
+.dash__dots i {
+  width: 9px; height: 9px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.dash__url {
+  justify-self: center;
+  padding: 4px 16px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.04);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.42);
+}
+
+.dash__user {
+  justify-self: end;
+  display: grid;
+  place-items: center;
+  width: 24px; height: 24px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.dash__app {
+  flex: 1;
+  display: flex;
+  min-height: 0;
+}
+
+/* --------------------------------------------------------------------------
+   Seitenleiste
+   -------------------------------------------------------------------------- */
+
+.dash__sidebar {
+  flex: none;
+  width: 198px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 14px 12px;
+  border-right: 1px solid var(--d-border);
+  background: rgba(255, 255, 255, 0.015);
+}
+
+.dash__brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 2px 2px 14px;
+  border-bottom: 1px solid var(--d-border);
+}
+
+.dash__logo {
+  display: grid;
+  place-items: center;
+  width: 34px; height: 34px;
+  flex: none;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+}
+
+.dash__logo svg { width: 21px; height: 21px; }
+
+.dash__brand-text { display: block; min-width: 0; }
+.dash__brand-text b {
+  display: block;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  color: var(--d-text);
+}
+.dash__brand-text i {
+  display: block;
+  margin-top: 2px;
+  font-size: 8px;
+  font-style: normal;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  color: var(--d-faint);
+}
+
+.dash__nav {
+  display: grid;
+  gap: 4px;
+  align-content: start;
+  flex: 1;
+  min-height: 0;
+}
+
+.dash__nav-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  margin: 0;
+  padding: 9px 10px;
+  border: 0;
+  border-radius: 11px;
+  background: transparent;
+  color: var(--d-mute);
+  font: 600 11.5px/1 var(--font);
+  text-align: left;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color 0.22s ease, color 0.22s ease;
+}
+
+.dash__nav-icon { width: 15px; height: 15px; flex: none; }
+
+.dash__nav-item:hover { background: rgba(255, 255, 255, 0.06); color: var(--d-text); }
+
+.dash__nav-item.is-active {
+  background: #fff;
+  color: #000;
+}
+
+.dash__nav-item:focus-visible { outline: 2px solid #9ec0ff; outline-offset: 2px; }
+
+.dash__account {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 10px 6px 2px;
+  border-top: 1px solid var(--d-border);
+}
+
+.dash__account-avatar {
+  display: grid;
+  place-items: center;
+  width: 28px; height: 28px;
+  flex: none;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  font-size: 9.5px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.dash__account-text { display: block; min-width: 0; }
+.dash__account-text b {
+  display: block;
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--d-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.dash__account-text i {
+  display: block;
+  font-size: 9px;
+  font-style: normal;
+  color: var(--d-faint);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* --------------------------------------------------------------------------
+   Bildschirm: die vier Seiten liegen übereinander
+   -------------------------------------------------------------------------- */
+
+.dash__screen {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  display: grid;
+}
+
+.dash__page {
+  grid-area: 1 / 1;
+  display: flex;
+  flex-direction: column;
+  gap: 13px;
+  min-height: 0;
+  min-width: 0;
+  padding: 15px 17px 17px;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(8px);
+  transition: opacity 0.38s ease, transform 0.38s ease, visibility 0s linear 0.38s;
+}
+
+.dash__page.is-active {
+  opacity: 1;
+  visibility: visible;
+  transform: none;
+  transition-delay: 0.06s, 0.06s, 0s;
+}
+
+/* Kopfzeile jeder Seite */
+.dash__topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex: none;
+  flex-wrap: wrap;
+}
+
+.dash__topbar-side {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.dash__h3 {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--d-text);
+}
+
+.dash__hint {
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--d-faint);
+}
+
+.dash__month {
+  min-width: 128px;
+  padding: 6px 12px;
+  border-radius: 9px;
+  border: 1px solid var(--d-border);
+  background: rgba(255, 255, 255, 0.04);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  text-align: center;
+  color: var(--d-text);
+}
+
+.dash__scroll {
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 13px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.18) transparent;
+}
+
+.dash__empty {
+  margin: 0;
+  padding: 40px 10px;
+  text-align: center;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--d-faint);
+}
+
+/* Zwei Spalten (Kalender, Route, Anfragen, Kunden, Aufgaben) */
+.dash__split {
+  display: grid;
+  grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
+  gap: 13px;
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
+}
+
+.dash__split--route { grid-template-columns: minmax(0, 1fr) minmax(0, 1.45fr); }
+
+/* --------------------------------------------------------------------------
+   Kleinteile: Knöpfe, Filter, Chips, Karten-Flächen
+   -------------------------------------------------------------------------- */
+
+.dbtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 30px;
+  margin: 0;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 9px;
+  font: 800 10px/1 var(--font);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.15s ease;
+}
+
+.dbtn--light { background: #fff; color: #000; }
+.dbtn--light:hover { background: #e4e4e7; }
+.dbtn--ghost { border: 1px solid var(--d-border); background: rgba(255, 255, 255, 0.04); color: var(--d-text); }
+.dbtn--light:active { transform: scale(0.97); }
+.dbtn--wide { width: 100%; }
+.dbtn:focus-visible { outline: 2px solid #9ec0ff; outline-offset: 2px; }
+.dbtn.is-busy { opacity: 0.6; pointer-events: none; }
+
+/* Nicht klickbare Knöpfe im Nachbau (z. B. „Objekt hinzufügen“) */
+span.dbtn { cursor: default; }
+
+.dash__filters {
+  display: flex;
+  gap: 3px;
+  padding: 3px;
+  border-radius: 10px;
+  border: 1px solid var(--d-border);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.dfilter {
+  margin: 0;
+  padding: 0 11px;
+  height: 24px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--d-mute);
+  font: 700 9.5px/1 var(--font);
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.dfilter:hover { color: var(--d-text); }
+.dfilter.is-active { background: #fff; color: #000; }
+.dfilter:focus-visible { outline: 2px solid #9ec0ff; outline-offset: 2px; }
+
+.dstep {
+  display: grid;
+  place-items: center;
+  width: 28px; height: 28px;
+  margin: 0;
+  padding: 0;
+  border: 1px solid var(--d-border);
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--d-mute);
+  cursor: pointer;
+  transition: color 0.2s ease, border-color 0.2s ease;
+}
+
+.dstep svg { width: 12px; height: 12px; }
+.dstep:hover { color: var(--d-text); border-color: var(--d-border-hover); }
+.dstep:focus-visible { outline: 2px solid #9ec0ff; outline-offset: 2px; }
+
+.dchip {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 7px;
+  border-radius: 5px;
+  border: 1px solid var(--d-border);
+  background: rgba(10, 10, 12, 0.72);
+  font-size: 8.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--d-text);
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+}
+
+.dchip--solid { background: #fff; border-color: #fff; color: #000; }
+.dchip--draft { background: #2a2208; border-color: #4d3c0b; color: #facc15; }
+.dchip--sold  { background: #2a0d0d; border-color: #5c1b1b; color: #f87171; }
+.dchip--mini  { font-size: 8px; padding: 2px 6px; color: var(--d-mute); }
+
+/* Flächen im Dashboard (entspricht .mono-card im Original) */
+.dpanel {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  min-width: 0;
+  border: 1px solid var(--d-border);
+  border-radius: 14px;
+  background: var(--d-card);
+  overflow: hidden;
+}
+
+.dpanel__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex: none;
+  padding: 11px 13px;
+  border-bottom: 1px solid var(--d-border);
+}
+
+.dpanel__title {
+  margin: 0;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--d-text);
+}
+
+.dpanel__meta {
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--d-faint);
+  white-space: nowrap;
+}
+
+.dpanel__body {
+  flex: 1;
+  min-height: 0;
+  padding: 9px;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.18) transparent;
+}
+
+.dpanel__foot {
+  flex: none;
+  padding: 10px 11px;
+  border-top: 1px solid var(--d-border);
+}
+
+/* --------------------------------------------------------------------------
+   Seite 1: Immobilien
+   -------------------------------------------------------------------------- */
+
+.dash__cards {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  align-content: start;
+}
+
+.dcard {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--d-border);
+  border-radius: 14px;
+  background: var(--d-card);
+  overflow: hidden;
+  transition: border-color 0.3s ease, transform 0.3s ease;
+}
+
+.dcard:hover { border-color: var(--d-border-hover); transform: translateY(-2px); }
+
+/* Die Bildfläche ist ein Farbverlauf (der Nachbau lädt keine Fotos);
+   der Verlauf steht als --img direkt am <article> im HTML. */
+.dcard__img {
+  position: relative;
+  height: 92px;
+  flex: none;
+  background: var(--img, rgba(255, 255, 255, 0.06)), #16161a;
+  border-bottom: 1px solid var(--d-border);
+}
+
+.dcard__badges {
+  position: absolute;
+  top: 9px; left: 9px;
+  display: flex;
+  gap: 5px;
+}
+
+.dcard__body {
+  padding: 11px 12px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+}
+
+.dcard__title {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.35;
+  letter-spacing: -0.005em;
+  color: var(--d-text);
+}
+
+.dcard__loc {
+  margin: 0;
+  font-size: 10.5px;
+  color: var(--d-mute);
+}
+
+.dcard__facts {
+  list-style: none;
+  margin: 0;
+  padding: 7px 8px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px 8px;
+  border: 1px solid var(--d-border);
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.dcard__facts li {
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--d-mute);
+}
+
+.dcard__match {
+  margin: auto 0 0;
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--d-faint);
+}
+
+.dcard__foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 10px 12px;
+  border-top: 1px solid var(--d-border);
+}
+
+.dcard__price { font-size: 12.5px; font-weight: 800; color: var(--d-text); }
+
+.dcard__acts { display: flex; gap: 5px; }
+.dcard__acts i {
+  width: 22px; height: 22px;
+  border-radius: 6px;
+  border: 1px solid var(--d-border);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+
+/* --------------------------------------------------------------------------
+   Seite 2: Kalender
+   -------------------------------------------------------------------------- */
+
+.dpanel--cal { padding: 11px; }
+
+.dcal__weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 3px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--d-border);
+  text-align: center;
+  font-size: 8.5px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: var(--d-faint);
+}
+
+.dcal__grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  grid-auto-rows: minmax(38px, 1fr);
+  gap: 3px;
+  margin-top: 6px;
+  flex: 1;
+  min-height: 0;
+}
+
+.dcal__day {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  margin: 0;
+  padding: 2px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.02);
+  color: var(--d-mute);
+  font: 600 11px/1 var(--font);
+  cursor: pointer;
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+.dcal__day:hover { background: rgba(255, 255, 255, 0.07); color: var(--d-text); }
+.dcal__day:focus-visible { outline: 2px solid #9ec0ff; outline-offset: 1px; }
+
+.dcal__day.is-out {
+  background: transparent;
+  color: #3f3f46;
+  cursor: default;
+  pointer-events: none;
+}
+
+.dcal__day.is-today { border-color: var(--d-border-hover); color: var(--d-text); }
+
+.dcal__day.is-selected {
+  background: #fff;
+  border-color: #fff;
+  color: #000;
+}
+
+.dcal__dots { display: flex; gap: 2.5px; height: 4px; }
+.dcal__dots i {
+  width: 4px; height: 4px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.55);
+}
+.dcal__day.is-selected .dcal__dots i { background: rgba(0, 0, 0, 0.6); }
+
+/* Ein Termin in der Tagesübersicht */
+.devent {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  padding: 9px 10px;
+  border: 1px solid var(--d-border);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.025);
+  transition: border-color 0.25s ease;
+}
+
+.devent:hover { border-color: var(--d-border-hover); }
+
+.devent.is-new { animation: dash-pop 0.4s cubic-bezier(0.22, 1, 0.36, 1); }
+
+@keyframes dash-pop {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: none; }
+}
+
+.devent__time {
+  flex: none;
+  width: 34px;
+  font-size: 10.5px;
+  font-weight: 800;
+  color: var(--d-text);
+  padding-top: 1px;
+}
+
+.devent__body { flex: 1; min-width: 0; }
+.devent__body b {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--d-text);
+  line-height: 1.35;
+}
+.devent__body i {
+  display: block;
+  margin-top: 2px;
+  font-size: 9.5px;
+  font-style: normal;
+  color: var(--d-faint);
+}
+
+.devent__tag {
+  flex: none;
+  align-self: center;
+  padding: 3px 7px;
+  border-radius: 5px;
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--d-mute);
+}
+
+.devent__tag[data-kind="besichtigung"] { background: rgba(255, 255, 255, 0.92); color: #000; }
+.devent__tag[data-kind="notartermin"]  { background: rgba(140, 160, 255, 0.18); color: #b6c3ff; }
+.devent__tag[data-kind="übergabe"]     { background: rgba(120, 220, 200, 0.16); color: #8fe3cf; }
+
+/* --------------------------------------------------------------------------
+   Seite 3: Finanzen
+   -------------------------------------------------------------------------- */
+
+.dkpis {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  flex: none;
+}
+
+.dkpi {
+  padding: 12px 14px;
+  border: 1px solid var(--d-border);
+  border-radius: 14px;
+  background: var(--d-card);
+}
+
+.dkpi__label {
+  display: block;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--d-faint);
+}
+
+.dkpi__value {
+  display: block;
+  margin-top: 6px;
+  font-size: clamp(16px, 2.2cqi, 21px);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--d-text);
+  font-variant-numeric: tabular-nums;
+}
+
+.dkpi--sum .dkpi__value { color: #9ef0c9; }
+
+.dlegend {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--d-faint);
+}
+
+.dlegend i { width: 8px; height: 8px; border-radius: 2px; }
+.dlegend__in  { background: var(--d-in); }
+.dlegend__out { background: rgba(255, 255, 255, 0.28); margin-left: 6px; }
+
+.dpanel--chart { flex: none; }
+
+.dchart {
+  display: flex;
+  align-items: stretch;
+  gap: 6px;
+  padding: 16px 13px 10px;
+  height: 178px;
+}
+
+.dbar {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  margin: 0;
+  padding: 6px 3px 5px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  background: transparent;
+  cursor: pointer;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.dbar:hover { background: rgba(255, 255, 255, 0.04); }
+.dbar.is-active { background: rgba(255, 255, 255, 0.06); border-color: var(--d-border); }
+.dbar:focus-visible { outline: 2px solid #9ec0ff; outline-offset: 2px; }
+
+.dbar__cols {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 5px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);  /* Grundlinie der Säulen */
+}
+
+.dbar__cols i {
+  display: block;
+  width: 42%;
+  max-width: 34px;
+  height: 0;
+  border-radius: 4px 4px 2px 2px;
+  transition: height 0.85s cubic-bezier(0.22, 1, 0.36, 1), background-color 0.25s ease;
+}
+
+.dbar__in  { background: rgba(255, 255, 255, 0.55); }
+.dbar__out { background: rgba(255, 255, 255, 0.18); }
+.dbar.is-active .dbar__in  { background: #fff; }
+.dbar.is-active .dbar__out { background: rgba(255, 255, 255, 0.34); }
+
+/* Säulen wachsen erst, wenn die Sektion im Bild ist (Klasse setzt js/dashboard.js) */
+.dchart.is-drawn .dbar__in  { height: var(--in); }
+.dchart.is-drawn .dbar__out { height: var(--out); }
+
+.dbar__label {
+  flex: none;
+  text-align: center;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--d-faint);
+  transition: color 0.2s ease;
+}
+
+.dbar.is-active .dbar__label { color: var(--d-text); }
+
+/* Buchungsliste */
+.dtable { padding: 4px 6px 8px; }
+
+.dtable__row {
+  display: grid;
+  grid-template-columns: 52px minmax(0, 1fr) 94px 96px;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 8px;
+  border-radius: 8px;
+  font-size: 10.5px;
+  color: var(--d-mute);
+}
+
+.dtable__row + .dtable__row { border-top: 1px solid rgba(255, 255, 255, 0.05); }
+.dtable__row:not(.dtable__row--head):hover { background: rgba(255, 255, 255, 0.035); }
+
+.dtable__row--head {
+  font-size: 8.5px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--d-faint);
+  border-bottom: 1px solid var(--d-border);
+  border-radius: 0;
+  padding-bottom: 9px;
+}
+
+.dtable__desc { color: var(--d-text); font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.dtag {
+  justify-self: start;
+  padding: 3px 7px;
+  border-radius: 5px;
+  border: 1px solid var(--d-border);
+  background: rgba(255, 255, 255, 0.03);
+  font-size: 8.5px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--d-mute);
+}
+
+.dtable__amount {
+  text-align: right;
+  font-size: 11px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  color: #9ef0c9;
+}
+
+.dtable__amount--out { color: #ff9b9b; }
+
+/* --------------------------------------------------------------------------
+   Seite 4: Routenplaner
+   -------------------------------------------------------------------------- */
+
+.drstop {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  padding: 9px 10px;
+  border: 1px solid var(--d-border);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.drstop__time {
+  flex: none;
+  width: 34px;
+  padding-top: 1px;
+  font-size: 10.5px;
+  font-weight: 800;
+  color: var(--d-text);
+}
+
+.drstop__body { flex: 1; min-width: 0; }
+.drstop__body b { display: block; font-size: 11px; font-weight: 600; color: var(--d-text); line-height: 1.35; }
+.drstop__body i { display: block; margin-top: 2px; font-size: 9.5px; font-style: normal; color: var(--d-faint); }
+
+.dpanel--route { position: relative; }
+
+.droute__empty {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 24px 32px;
+  text-align: center;
+}
+
+.droute__empty svg { width: 30px; height: 30px; color: var(--d-faint); }
+.droute__empty p {
+  margin: 0;
+  max-width: 34ch;
+  font-size: 10.5px;
+  letter-spacing: 0.04em;
+  line-height: 1.6;
+  color: var(--d-faint);
+}
+
+.droute__result {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+
+/* Kleine, schematische Karte */
+.droute__map {
+  position: relative;   /* Bezug für die Stopp-Punkte, die als HTML darüber liegen */
+  flex: none;
+  height: 132px;
+  overflow: hidden;
+  border-bottom: 1px solid var(--d-border);
+  background:
+    radial-gradient(120% 120% at 20% 0%, rgba(120, 150, 255, 0.1), transparent 60%),
+    #0d0f14;
+}
+
+/* Die Karte ist absichtlich schematisch: das SVG zeichnet nur Straßen und die
+   Linie (es wird auf die volle Breite gezogen, daher vector-effect am Pfad),
+   die Stopp-Punkte liegen als HTML darüber und bleiben dadurch rund. */
+.droute__map svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.dmap__road { stroke: rgba(255, 255, 255, 0.07); stroke-width: 6; stroke-linecap: round; fill: none; }
+.dmap__grid { stroke: rgba(255, 255, 255, 0.04); stroke-width: 1; fill: none; }
+
+.dmap__line {
+  fill: none;
+  stroke: #fff;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: var(--len, 600);
+  stroke-dashoffset: var(--len, 600);
+  animation: dash-draw 1.1s cubic-bezier(0.32, 0.72, 0, 1) forwards;
+}
+
+@keyframes dash-draw { to { stroke-dashoffset: 0; } }
+
+.dmap__pin {
+  position: absolute;
+  display: grid;
+  place-items: center;
+  width: 20px; height: 20px;
+  border-radius: 50%;
+  background: #fff;
+  color: #000;
+  font-size: 9px;
+  font-weight: 800;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.55);
+  transform: translate(-50%, -50%) scale(0.4);
+  opacity: 0;
+  animation: dash-pin 0.42s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.dmap__pin--home {
+  width: 16px; height: 16px;
+  background: rgba(255, 255, 255, 0.16);
+  color: #fff;
+  box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, 0.7);
+}
+
+@keyframes dash-pin {
+  to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+}
+
+.droute__summary {
+  flex: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 11px 12px;
+  border-bottom: 1px solid var(--d-border);
+}
+
+.dsum {
+  padding: 4px 9px;
+  border-radius: 7px;
+  border: 1px solid var(--d-border);
+  background: rgba(255, 255, 255, 0.04);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--d-mute);
+}
+
+.dsum--warn { border-color: #4d3c0b; background: #2a2208; color: #facc15; }
+.dsum b { color: var(--d-text); font-weight: 800; }
+
+.droute__list {
+  flex: 1;
+  min-height: 0;
+  padding: 11px 12px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.18) transparent;
+}
+
+.drow {
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr);
+  gap: 10px;
+  align-items: start;
+}
+
+.drow__num {
+  display: grid;
+  place-items: center;
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  background: #fff;
+  color: #000;
+  font-size: 9.5px;
+  font-weight: 800;
+}
+
+.drow__num--home { background: rgba(255, 255, 255, 0.12); color: #fff; }
+
+.drow__body { padding-top: 3px; min-width: 0; }
+.drow__body b { display: block; font-size: 11px; font-weight: 600; color: var(--d-text); }
+.drow__body i { display: block; margin-top: 2px; font-size: 9.5px; font-style: normal; color: var(--d-faint); }
+.drow__time {
+  float: right;
+  margin-left: 8px;
+  font-size: 10px;
+  font-weight: 800;
+  color: var(--d-mute);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Verbindungsstück zwischen zwei Stopps: Fahrzeit und Kilometer */
+.dleg {
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr);
+  gap: 10px;
+  align-items: center;
+  height: 26px;
+}
+
+.dleg__line {
+  justify-self: center;
+  width: 0;
+  height: 100%;
+  border-left: 1.5px dashed rgba(255, 255, 255, 0.2);
+}
+
+.dleg__text {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--d-faint);
+}
+
+/* Während gerechnet wird */
+.droute__result.is-busy { opacity: 0.45; }
+
+/* --------------------------------------------------------------------------
+   Seite 5: Übersicht
+   Oben die große Kennzahl mit Wellenform und vier Reitern, darunter links der
+   Jahresverlauf, rechts Tagesüberblick und neue Anfragen.
+   -------------------------------------------------------------------------- */
+
+/* Zwei Spalten, rechte Spalte noch einmal zweigeteilt */
+.dash__cols {
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+  gap: 13px;
+  flex: 1;
+  min-height: 290px;
+  min-width: 0;
+}
+
+.dash__stack {
+  display: grid;
+  grid-template-rows: 1fr 1fr;
+  gap: 13px;
+  min-height: 0;
+  min-width: 0;
+}
+
+.dmetric { flex: none; }
+
+.dmetric__head {
+  position: relative;
+  height: 116px;
+  overflow: hidden;
+}
+
+/* Wellenform im Hintergrund – dieselbe Form wie im echten Dashboard.
+   Der Pfad ragt links und rechts über den Rahmen hinaus, damit die langsame
+   Drift keine leere Kante freilegt. */
+.dmetric__wave {
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  width: 100%;
+  height: 62px;
+  color: #ffffff;
+  opacity: 0.055;
+}
+
+.dmetric__wave path {
+  fill: currentColor;
+  animation: dash-wave 11s ease-in-out infinite;
+}
+
+.dmetric__wave--back {
+  bottom: -9px;
+  opacity: 0.035;
+}
+
+.dmetric__wave--back path { animation-duration: 16s; animation-direction: reverse; }
+
+@keyframes dash-wave {
+  0%, 100% { transform: translateX(0); }
+  50%      { transform: translateX(-10px); }
+}
+
+.dmetric__text {
+  position: relative;
+  padding: 16px 18px;
+}
+
+.dmetric__label {
+  margin: 0;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--d-faint);
+}
+
+.dmetric__value {
+  margin: 7px 0 0;
+  font-size: clamp(22px, 3.2cqi, 32px);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: var(--d-text);
+  font-variant-numeric: tabular-nums;
+}
+
+.dmetric__desc {
+  margin: 7px 0 0;
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--d-mute);
+}
+
+.dmetric__tabs {
+  display: flex;
+  gap: 4px;
+  padding: 6px;
+  border-top: 1px solid var(--d-border);
+}
+
+.dmetric__tab {
+  flex: 1;
+  min-width: 0;
+  height: 28px;
+  margin: 0;
+  padding: 0 6px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--d-mute);
+  font: 700 9.5px/1 var(--font);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.dmetric__tab:hover { background: rgba(255, 255, 255, 0.05); color: var(--d-text); }
+.dmetric__tab.is-active { background: #fff; color: #000; }
+.dmetric__tab:focus-visible { outline: 2px solid #9ec0ff; outline-offset: 2px; }
+
+/* Jahresverlauf: Fläche und Linie im SVG (auf volle Breite gezogen, daher
+   vector-effect), Monatsnamen und der Punkt für „jetzt“ als HTML darüber. */
+.dov__chart {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 14px 13px 11px;
+}
+
+.dov__plot {
+  position: relative;
+  flex: 1;
+  min-height: 84px;
+}
+
+.dov__plot svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+
+.dov__grid { stroke: rgba(255, 255, 255, 0.06); fill: none; }
+.dov__area { fill: rgba(255, 255, 255, 0.07); stroke: none; }
+.dov__line { fill: none; stroke: #fff; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+.dov__now {
+  position: absolute;
+  width: 9px; height: 9px;
+  margin: -4.5px 0 0 -4.5px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.16);
+}
+
+.dov__labels {
+  display: flex;
+  justify-content: space-between;
+  gap: 2px;
+  padding-top: 9px;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.dov__labels span {
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--d-faint);
+}
+
+.dov__labels span.is-now { color: var(--d-text); }
+
+/* --------------------------------------------------------------------------
+   Seite 6: Anfragen – Liste links, Anfrage im Klartext rechts
+   -------------------------------------------------------------------------- */
+
+/* Liste links schmaler als der Lesebereich rechts */
+.dash__split--list { grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr); }
+
+.dmail {
+  display: grid;
+  grid-template-columns: 8px minmax(0, 1fr) auto;
+  gap: 9px;
+  align-items: start;
+  width: 100%;
+  margin: 0;
+  padding: 9px 10px;
+  border: 1px solid var(--d-border);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.025);
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.dmail:hover { border-color: var(--d-border-hover); }
+.dmail.is-active { background: rgba(255, 255, 255, 0.08); border-color: var(--d-border-hover); }
+.dmail:focus-visible { outline: 2px solid #9ec0ff; outline-offset: 2px; }
+
+.dmail__dot {
+  width: 7px; height: 7px;
+  margin-top: 4px;
+  border-radius: 50%;
+  background: #fff;
+}
+
+.dmail.is-read .dmail__dot { background: transparent; }
+
+.dmail__body { min-width: 0; }
+.dmail__body b {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--d-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.dmail.is-read .dmail__body b { font-weight: 500; color: var(--d-mute); }
+.dmail.is-active .dmail__body b { color: var(--d-text); }
+
+/* Kundenliste: kein Punkt fuer ungelesen, Namen immer in voller Farbe */
+.dmail--person { grid-template-columns: minmax(0, 1fr) auto; }
+.dmail--person .dmail__dot { display: none; }
+.dmail--person .dmail__body b { font-weight: 600; color: var(--d-text); }
+
+.dmail__body span {
+  display: block;
+  margin-top: 2px;
+  font-size: 9.5px;
+  color: var(--d-faint);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dmail__time {
+  padding-top: 2px;
+  font-size: 8.5px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--d-faint);
+  white-space: nowrap;
+}
+
+/* Gemeinsamer Aufbau der rechten Detail-Spalte (Anfragen, Kunden, Aufgaben) */
+.ddetail {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.ddetail__head {
+  flex: none;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--d-border);
+}
+
+.ddetail__title { margin: 0; font-size: 13px; font-weight: 700; color: var(--d-text); }
+
+.ddetail__sub {
+  margin: 4px 0 0;
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--d-faint);
+}
+
+.ddetail__body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 13px 14px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.18) transparent;
+}
+
+.ddetail__foot {
+  flex: none;
+  display: flex;
+  gap: 7px;
+  padding: 11px 14px;
+  border-top: 1px solid var(--d-border);
+}
+
+/* Platzhalter, solange rechts nichts gewählt ist */
+.ddetail--empty {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 11px;
+  padding: 24px 30px;
+  text-align: center;
+}
+
+.ddetail--empty svg { width: 28px; height: 28px; color: var(--d-faint); }
+.ddetail--empty p {
+  margin: 0;
+  max-width: 30ch;
+  font-size: 10.5px;
+  line-height: 1.6;
+  letter-spacing: 0.04em;
+  color: var(--d-faint);
+}
+
+.dfields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.dfield {
+  padding: 8px 10px;
+  border: 1px solid var(--d-border);
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.dfield b {
+  display: block;
+  font-size: 8.5px;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--d-faint);
+}
+
+.dfield span {
+  display: block;
+  margin-top: 3px;
+  font-size: 11px;
+  color: var(--d-text);
+  overflow-wrap: anywhere;
+}
+
+.dlabel {
+  margin: 0;
+  font-size: 8.5px;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--d-faint);
+}
+
+.dmessage {
+  margin: -6px 0 0;
+  font-size: 11.5px;
+  line-height: 1.65;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.dchip--count { background: rgba(255, 255, 255, 0.1); border-color: transparent; }
+
+/* --------------------------------------------------------------------------
+   Seite 7: Kunden – Suchprofil und passende Objekte
+   -------------------------------------------------------------------------- */
+
+.dmatch {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 4px 10px;
+  align-items: center;
+  padding: 9px 10px;
+  border: 1px solid var(--d-border);
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.dmatch b { display: block; font-size: 11px; font-weight: 600; color: var(--d-text); }
+.dmatch__sub { display: block; margin-top: 2px; font-size: 9.5px; color: var(--d-faint); }
+
+.dmatch__score {
+  font-size: 11px;
+  font-weight: 800;
+  color: #9ef0c9;
+  font-variant-numeric: tabular-nums;
+}
+
+.dmatch__bar {
+  grid-column: 1 / -1;
+  height: 3px;
+  margin-top: 4px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+}
+
+.dmatch__bar i { display: block; height: 100%; border-radius: 2px; background: #fff; }
+
+/* --------------------------------------------------------------------------
+   Seite 8: Aufgaben – Liste mit Haken, rechts die Checkliste
+   -------------------------------------------------------------------------- */
+
+/* Kästchen für Aufgaben und Checklisten-Punkte */
+.dbox {
+  display: grid;
+  place-items: center;
+  width: 15px; height: 15px;
+  flex: none;
+  border: 1.5px solid rgba(255, 255, 255, 0.35);
+  border-radius: 5px;
+  color: transparent;
+  transition: background-color 0.18s ease, border-color 0.18s ease, color 0.18s ease;
+}
+
+.dbox svg { width: 9px; height: 9px; }
+.is-done .dbox { background: #fff; border-color: #fff; color: #000; }
+
+.dtask {
+  display: grid;
+  grid-template-columns: 15px minmax(0, 1fr) auto;
+  gap: 9px;
+  align-items: start;
+  width: 100%;
+  margin: 0;
+  padding: 9px 10px;
+  border: 1px solid var(--d-border);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.025);
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.dtask:hover { border-color: var(--d-border-hover); }
+.dtask.is-active { background: rgba(255, 255, 255, 0.08); border-color: var(--d-border-hover); }
+.dtask:focus-visible { outline: 2px solid #9ec0ff; outline-offset: 2px; }
+.dtask .dbox { margin-top: 1px; }
+
+.dtask__title { display: block; font-size: 11px; font-weight: 600; color: var(--d-text); line-height: 1.35; }
+.dtask.is-done .dtask__title { color: var(--d-faint); text-decoration: line-through; }
+
+.dtask__meta {
+  display: block;
+  margin-top: 3px;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--d-faint);
+}
+
+.dtask__meta em { font-style: normal; color: #facc15; }
+.dtask.is-done .dtask__meta em { color: var(--d-faint); }
+
+.dwho {
+  display: grid;
+  place-items: center;
+  width: 20px; height: 20px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 8px;
+  font-weight: 700;
+}
+
+.dcheck {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+  margin: 0;
+  padding: 8px 10px;
+  border: 1px solid var(--d-border);
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.025);
+  color: var(--d-text);
+  font: 500 11px/1.4 var(--font);
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.2s ease;
+}
+
+.dcheck:hover { border-color: var(--d-border-hover); }
+.dcheck:focus-visible { outline: 2px solid #9ec0ff; outline-offset: 2px; }
+.dcheck.is-done span { color: var(--d-faint); text-decoration: line-through; }
+
+.dchecks { display: flex; flex-direction: column; gap: 6px; }
+
+/* Zähler am Menüpunkt „Anfragen“ in der Seitenleiste */
+.dash__nav-badge {
+  display: grid;
+  place-items: center;
+  min-width: 17px;
+  height: 17px;
+  margin-left: auto;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.14);
+  color: var(--d-text);
+  font-size: 8.5px;
+  font-weight: 800;
+}
+
+.dash__nav-item.is-active .dash__nav-badge { background: rgba(0, 0, 0, 0.12); color: #000; }
+
+/* --------------------------------------------------------------------------
+   Unter dem Widget: Seitenwahl
+   -------------------------------------------------------------------------- */
+
+.dash__pager {
+  display: flex;
+  justify-content: center;
+  margin-top: clamp(22px, 3vw, 34px);
+}
+
+.dash-switch {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 2px;
+  padding: 5px;
+  border-radius: 999px;
+  background: rgba(16, 18, 28, 0.72);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.16),
+    0 0 0 1px rgba(255, 255, 255, 0.12),
+    0 14px 34px rgba(0, 0, 0, 0.5);
+  -webkit-backdrop-filter: blur(14px) saturate(160%);
+  backdrop-filter: blur(14px) saturate(160%);
+}
+
+/* Die weiße Pille hinter dem aktiven Punkt – Position und Breite misst js/dashboard.js */
+.dash-switch__glider {
+  position: absolute;
+  top: 0; left: 0;
+  height: 34px;
+  border-radius: 999px;
+  background: #fff;
+  opacity: 0;
+  pointer-events: none;
+  transition: transform 0.45s cubic-bezier(0.32, 0.72, 0, 1), width 0.45s cubic-bezier(0.32, 0.72, 0, 1), opacity 0.3s ease;
+}
+
+.dash-switch__item {
+  position: relative;
+  z-index: 1;
+  height: 34px;
+  margin: 0;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.72);
+  font: 500 13px/1 var(--font);
+  cursor: pointer;
+  transition: color 0.25s ease, background-color 0.25s ease;
+}
+
+.dash-switch__item:hover { color: #fff; background: rgba(255, 255, 255, 0.08); }
+.dash-switch__item.is-active { color: #0a0d16; background: transparent; }
+.dash-switch__item:focus-visible { outline: 2px solid #9ec0ff; outline-offset: 3px; }
+
+/* Ohne gemessene Pille (noch kein JS gelaufen) trägt der aktive Punkt selbst die Fläche */
+.dash-switch:not(.is-ready) .dash-switch__item.is-active { background: #fff; }
+
+/* --------------------------------------------------------------------------
+   Innerer Umbruch nach Breite des Widgets
+   -------------------------------------------------------------------------- */
+
+@container dashapp (max-width: 1040px) {
+  .dash__cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .dtable__row { grid-template-columns: 50px minmax(0, 1fr) 88px; }
+  .dtable__row .dtag { display: none; }
+}
+
+@container dashapp (max-width: 900px) {
+  .dash__sidebar { width: 58px; padding: 14px 9px; align-items: center; }
+  .dash__brand { justify-content: center; padding-bottom: 12px; }
+  .dash__brand-text, .dash__account-text { display: none; }
+  .dash__nav { width: 100%; }
+  .dash__nav-item { justify-content: center; padding: 10px 0; }
+  .dash__nav-item span:not(.dash__nav-badge) { display: none; }
+  .dash__nav-badge { position: absolute; top: 3px; right: 4px; margin: 0; }
+  .dash__nav-item { position: relative; }
+  .dash__account { justify-content: center; }
+  .dash__split, .dash__split--route, .dash__split--list { grid-template-columns: minmax(0, 1fr); grid-auto-rows: minmax(210px, auto); overflow-y: auto; }
+  .dash__cols { grid-template-columns: minmax(0, 1fr); grid-auto-rows: minmax(230px, auto); flex: none; }
+  .dash__stack { grid-template-rows: minmax(190px, auto) minmax(190px, auto); }
+}
+
+@container dashapp (max-width: 620px) {
+  .dash__sidebar { display: none; }
+  .dash__cards { grid-template-columns: minmax(0, 1fr); }
+  .dkpis { grid-template-columns: minmax(0, 1fr); gap: 8px; }
+  .dash__page { padding: 13px 13px 15px; }
+  .dash__hint { display: none; }
+  .dchart { height: 150px; }
+  .droute__map { height: 108px; }
+  .dfields { grid-template-columns: minmax(0, 1fr); }
+  .dmetric__tabs { flex-wrap: wrap; }
+  .dmetric__tab { flex: 1 1 42%; }
+  .dov__labels span:nth-child(odd) { display: none; }
+}
+
+/* Sehr schmal (kleine Telefone): auch die Zweispalter in den Karten aufgeben */
+@container dashapp (max-width: 400px) {
+  .dcard__facts { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* --------------------------------------------------------------------------
+   Responsive & reduzierte Bewegung
+   -------------------------------------------------------------------------- */
+
+@media (max-width: 900px) {
+  .dash { padding: 96px var(--frame-side, 20px) 96px; }
+  .dash__widget { height: clamp(500px, 78svh, 640px); }
+}
+
+@media (max-width: 640px) {
+  .dash__lead { font-size: 14.5px; }
+  .dash-switch__item { padding: 0 13px; font-size: 12.5px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dash__intro, .dash__widget, .dash__pager,
+  .dash__page, .dcard, .dash-switch__glider,
+  .dbar__cols i { transition: none; }
+  .dmetric__wave path { animation: none; }
+  .dmap__line { animation: none; stroke-dashoffset: 0; }
+  .dmap__pin { animation: none; opacity: 1; transform: translate(-50%, -50%); }
+  .devent.is-new { animation: none; }
+}
+
+
+/* ==========================================================================
+   Sektion „Ein System. Zwei Seiten.“
+   Überschrift, kurze Beschreibung, die zwei Wörter und der Strich dazwischen.
+
+   Die Sektion ist doppelt so hoch wie der Bildschirm (--sys-vh) und ihre obere
+   Hälfte klebt fest: Sobald sie mittig im Bild steht, hängt man kurz, und genau
+   in dieser Strecke wird der Strich gezogen. Kürzer hängen = --sys-vh kleiner.
+
+   Den Fortschritt setzt js/system.js an der Sektion: --p (0..1) zieht den
+   Strich, --q ist derselbe Weg weich abgebremst: er blendet die beiden Wörter
+   auf und rückt sie ein Stück von links und rechts heran, sodass sie genau dann
+   stehen, wenn der Strich durch ist. Daraus wird gezeichnet:
+     .sys__line   der Strich, per clip-path bis --p freigelegt
+     .sys__beam   derselbe Strich weichgezeichnet = der Schein darum
+     .sys__head   Lichtpunkt an der Spitze (Klasse is-drawing am Verbinder)
+   Ist der Strich angekommen, setzt js .is-linked an der Sektion: beide Enden
+   und die Wörter leuchten auf.
+
+   Farbe: das Blau des Hintergrund-Leuchtens, zur Mitte hin mit Weiß gemischt
+   (--sys-blue / --sys-mix).
+   Ab 720 px stehen die Wörter untereinander – der Strich läuft dann senkrecht;
+   das erledigt allein der Media-Query unten, js bleibt gleich.
+   ========================================================================== */
+
+.sys {
+  position: relative;
+  /* Erste Bildschirmhöhe = das Bild selbst, der Rest = die Strecke, in der es
+     festklebt und der Strich gezogen wird (300 = zwei Bildschirmhöhen lang) */
+  --sys-vh: 300;
+  height: calc(var(--sys-vh) * 1vh);
+  height: calc(var(--sys-vh) * 1svh);
+  background: var(--bg);
+
+  --p: 0;                /* Fortschritt des Strichs 0..1, gesetzt von js/system.js */
+  --q: 0;                /* derselbe Weg für die Wörter, weich abgebremst */
+  --sys-fly: clamp(32px, 5vw, 88px);   /* um so viel rücken die Wörter beim Reinfliegen nach */
+
+  --sys-blue: #7896ff;   /* Blau wie im Hintergrund-Leuchten */
+  --sys-mix:  #d2dcff;   /* dasselbe Blau mit Weiß gemischt */
+  --sys-w:    2px;       /* Stärke des Strichs */
+}
+
+/* Das, was kurz stehen bleibt.
+   Drei Reihen: oben Überschrift und Beschreibung, in der Mitte die Animation,
+   unten leer. Weil die beiden Außenreihen gleich groß sind (1fr), sitzt die
+   mittlere – also der Strich – genau in der Bildschirmmitte. Wird der Text oben
+   einmal höher als seine Reihe (kleine Telefone), wächst sie mit und schiebt
+   die Animation nach unten, statt oben abgeschnitten zu werden. */
+.sys__sticky {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  height: 100svh;
+  display: grid;
+  grid-template-rows: 1fr auto 1fr;
+  justify-items: center;
+  /* oben und unten gleich viel: hält die Überschrift von der schwebenden
+     Navigation weg und lässt die Mitte trotzdem die Mitte bleiben */
+  padding: clamp(72px, 9vh, 96px) var(--frame-side, 20px);
+  overflow: clip;   /* clip statt hidden: hidden würde das Kleben aufheben */
+}
+
+/* Weiches Leuchten dahinter – wie in den Sektionen darüber */
+.sys__glow {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: min(1500px, 150vw);
+  height: 940px;
+  transform: translate(-50%, -50%);
+  background: radial-gradient(closest-side, rgba(120, 150, 255, 0.11), rgba(120, 150, 255, 0.03) 50%, transparent 80%);
+  filter: blur(70px);
+  pointer-events: none;
+}
+
+/* Überschrift + Beschreibung: unten in der oberen Reihe, mit Abstand zur Mitte */
+.sys__intro {
+  grid-row: 1;
+  align-self: end;
+  position: relative;
+  width: 100%;
+  max-width: 1240px;
+  margin-bottom: clamp(76px, 15vh, 170px);
+  text-align: center;
+}
+
+.sys__title {
+  margin: 0 0 16px;
+  font-size: clamp(34px, 4.2vw, 56px);
+  font-weight: 600;
+  line-height: 1.08;
+  letter-spacing: -0.035em;
+  color: #fafafa;
+}
+
+/* Kurze Beschreibung darunter (Text in index.html) */
+.sys__lead {
+  margin: 0 auto;
+  max-width: 52ch;
+  font-size: 15.5px;
+  line-height: 1.65;
+  color: rgba(255, 255, 255, 0.66);
+}
+
+/* Einblenden beim Reinscrollen (gleiche Handschrift wie .more und .dash) */
+.sys__title,
+.sys__lead,
+.sys__pair {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.8s ease, transform 0.9s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.sys.is-in .sys__title,
+.sys.is-in .sys__lead,
+.sys.is-in .sys__pair { opacity: 1; transform: none; }
+.sys.is-in .sys__lead { transition-delay: 0.08s; }
+.sys.is-in .sys__pair { transition-delay: 0.16s; }
+
+/* --------------------------------------------------------------------------
+   Die zwei Wörter, dazwischen der Strich
+   -------------------------------------------------------------------------- */
+
+.sys__pair {
+  grid-row: 2;
+  position: relative;
+  width: 100%;
+  max-width: 1240px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) clamp(180px, 27vw, 480px) minmax(0, 1fr);
+  align-items: center;
+}
+
+.sys__word {
+  font-size: clamp(26px, 3.9vw, 52px);
+  font-weight: 600;
+  line-height: 1.1;
+  letter-spacing: -0.035em;
+  white-space: nowrap;
+  color: rgba(250, 250, 250, 0.72);
+  /* Am Anfang nicht da: die Wörter blenden beim Heranrücken auf. Der Faktor
+     macht sie schneller sichtbar als der Weg lang ist (über 1 wird gekappt). */
+  opacity: calc(var(--q) * 1.5);
+  transition: color 0.6s ease, text-shadow 0.6s ease;
+}
+
+/* Während der Strich rausgeht, rücken die Wörter ein Stück von außen heran
+   (wie weit: --sys-fly) und blenden dabei auf. Kein transition hier: der Wert
+   kommt Bild für Bild vom Scrollen. */
+.sys__word--web  { justify-self: end;   transform: translateX(calc((var(--q) - 1) * var(--sys-fly))); }
+.sys__word--dash { justify-self: start; transform: translateX(calc((1 - var(--q)) * var(--sys-fly))); }
+
+/* Ist der Strich durchgezogen, leuchten beide Wörter auf */
+.sys.is-linked .sys__word {
+  color: #ffffff;
+  text-shadow: 0 0 22px rgba(120, 150, 255, 0.3);
+}
+
+/* --------------------------------------------------------------------------
+   Der Strich
+   -------------------------------------------------------------------------- */
+
+.sys__connect {
+  position: relative;
+  height: 46px;
+  /* Abstand der Punkte zu den Wörtern: der Verbinder ist schmaler als seine
+     Spalte, Strich und Enden sitzen an seinen Kanten und rücken mit */
+  margin: 0 clamp(20px, 2.6vw, 42px);
+}
+
+.sys__beam,
+.sys__line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: var(--sys-w);
+  margin-top: calc(var(--sys-w) / -2);
+  border-radius: 999px;
+}
+
+/* Der Strich selbst: außen Blau, zur Mitte hin mit Weiß gemischt */
+.sys__line {
+  background: linear-gradient(90deg,
+    rgba(120, 150, 255, 0.85),
+    var(--sys-mix) 50%,
+    rgba(120, 150, 255, 0.85));
+  clip-path: inset(0 calc((1 - var(--p)) * 100%) 0 0);
+}
+
+/* Derselbe Verlauf, nur weichgezeichnet = der Schein darum */
+.sys__beam {
+  height: calc(var(--sys-w) * 3);
+  margin-top: calc(var(--sys-w) * -1.5);
+  background: linear-gradient(90deg,
+    rgba(120, 150, 255, 0.55),
+    rgba(200, 216, 255, 0.7) 50%,
+    rgba(120, 150, 255, 0.55));
+  filter: blur(7px);
+  clip-path: inset(0 calc((1 - var(--p)) * 100%) 0 0);
+}
+
+/* Lichtpunkt an der Spitze – nur, solange gezogen wird */
+.sys__head {
+  position: absolute;
+  top: 50%;
+  left: calc(var(--p) * 100%);
+  width: 9px;
+  height: 9px;
+  margin: -4.5px 0 0 -4.5px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow:
+    0 0 10px 2px rgba(180, 200, 255, 0.9),
+    0 0 26px 7px rgba(120, 150, 255, 0.45);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.sys__connect.is-drawing .sys__head { opacity: 1; }
+
+/* Die beiden Enden sitzen an den Wörtern und tauchen erst auf, wenn der Strich
+   dort ankommt – vorher verrät nichts, wohin er läuft */
+.sys__node {
+  position: absolute;
+  top: 50%;
+  width: 10px;
+  height: 10px;
+  margin-top: -5px;
+  border-radius: 50%;
+  background: var(--sys-mix);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.5),
+    0 0 14px 3px rgba(120, 150, 255, 0.55);
+  opacity: 0;
+  transition: opacity 0.35s ease;
+}
+
+.sys__node--start { left: 0; }
+.sys__node--end   { right: 0; }
+
+.sys__connect.is-drawing .sys__node--start,
+.sys.is-linked .sys__node--start,
+.sys.is-linked .sys__node--end { opacity: 1; }
+
+/* --------------------------------------------------------------------------
+   Schmal: die Wörter stehen untereinander, der Strich läuft senkrecht
+   -------------------------------------------------------------------------- */
+
+@media (max-width: 720px) {
+  /* Enger, damit über der mittig sitzenden Animation noch Platz für Überschrift
+     und Beschreibung bleibt */
+  .sys__intro { margin-bottom: clamp(40px, 6vh, 60px); }
+
+  /* row-gap = Abstand der Punkte zu den Wörtern (steht quer statt längs) */
+  .sys__pair {
+    grid-template-columns: minmax(0, 1fr);
+    row-gap: 26px;
+  }
+
+  .sys__word--web,
+  .sys__word--dash { justify-self: center; }
+
+  .sys__connect { height: clamp(100px, 17vh, 150px); margin: 0; }
+
+  .sys__beam,
+  .sys__line {
+    left: 50%;
+    right: auto;
+    top: 0;
+    bottom: 0;
+    width: var(--sys-w);
+    height: auto;
+    margin: 0 0 0 calc(var(--sys-w) / -2);
+  }
+
+  .sys__line {
+    background: linear-gradient(180deg,
+      rgba(120, 150, 255, 0.85),
+      var(--sys-mix) 50%,
+      rgba(120, 150, 255, 0.85));
+    clip-path: inset(0 0 calc((1 - var(--p)) * 100%) 0);
+  }
+
+  .sys__beam {
+    width: calc(var(--sys-w) * 3);
+    margin-left: calc(var(--sys-w) * -1.5);
+    background: linear-gradient(180deg,
+      rgba(120, 150, 255, 0.55),
+      rgba(200, 216, 255, 0.7) 50%,
+      rgba(120, 150, 255, 0.55));
+    clip-path: inset(0 0 calc((1 - var(--p)) * 100%) 0);
+  }
+
+  .sys__head {
+    left: 50%;
+    top: calc(var(--p) * 100%);
+  }
+
+  .sys__node {
+    left: 50%;
+    right: auto;
+    margin: 0;
+    transform: translate(-50%, -50%);
+  }
+
+  .sys__node--start { top: 0; }
+  .sys__node--end   { top: 100%; }
+}
+
+/* Ohne Bewegung: nichts klebt, der Strich ist einfach da */
+@media (prefers-reduced-motion: reduce) {
+  .sys {
+    height: auto;
+  }
+
+  .sys__sticky {
+    position: static;
+    height: auto;
+    grid-template-rows: none;
+    padding: 120px var(--frame-side, 20px);
+  }
+
+  .sys__title, .sys__lead, .sys__pair, .sys__word,
+  .sys__head, .sys__node { transition: none; }
+}
+
+
+/* ==========================================================================
+   Sektion „Preise“
+   Aufbau: Überschrift, darunter der Schalter zwischen Solo und Team, darunter
+   die Karte des gewählten Plans. Die Karte ist so breit wie das Video im Hero
+   und innen zweispaltig: links Name und Preis, rechts die Leistungen. Beide
+   Karten liegen übereinander (grid-area 1/1), sichtbar ist nur die aktive.
+
+   Beim Team-Plan: oben die gestapelten Kreise (einer pro Nutzer, absolut
+   positioniert nach --i, die Breite des Stapels wächst mit --n), darunter der
+   Regler. Beides baut und rechnet js/pricing.js:
+     .price__stack   width in Pixeln (--n unten ist nur der Stand ohne js)
+     .price__dot     --i = Platz im Stapel, .is-on sichtbar, .is-last der neueste
+     .price__range   --fill = Füllstand der Schiene in Prozent
+     .price__num     .is-bump = kurzer Stups, wenn sich der Preis ändert
+   Zustand beim Reinscrollen: .price.is-in (gleiche Handschrift wie .more,
+   .dash und .sys) – gesetzt wird es aber erst, wenn der Strich in der Sektion
+   darüber durchgezogen ist (.sys.is-linked), damit nicht zwei Sachen
+   gleichzeitig laufen.
+   ========================================================================== */
+
+.price {
+  position: relative;
+  /* Die Sektion davor endet mit einer halben leeren Bildschirmhoehe (unter den
+     beiden Woertern). Damit dazwischen keine tote Strecke steht, rueckt die
+     Preis-Sektion in diese Leere hinein und hat oben selbst wenig Abstand.
+     Naeher heran = mehr Minus; weiter weg = weniger. */
+  margin-top: -22vh;
+  padding: clamp(16px, 2.5vw, 34px) var(--frame-side, 20px) 130px;
+  /* Kein eigener Hintergrund: er wuerde im Ueberlappen das Leuchten der Sektion
+     darueber hart abschneiden. Das --bg der Seite liegt ohnehin dahinter. */
+  background: transparent;
+  overflow: clip;
+
+  --pr-blue: #7896ff;   /* Blau wie im Hintergrund-Leuchten */
+  --pr-mix:  #d2dcff;   /* dasselbe Blau mit Weiß gemischt */
+}
+
+/* Weiches Leuchten dahinter – wie in den Sektionen darüber */
+.price__glow {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: min(1100px, 130vw);
+  height: 820px;
+  transform: translate(-50%, -50%);
+  background: radial-gradient(closest-side, rgba(120, 150, 255, 0.15), rgba(120, 150, 255, 0.04) 45%, transparent 75%);
+  filter: blur(50px);
+  pointer-events: none;
+}
+
+.price__inner {
+  position: relative;
+  max-width: 1240px;
+  margin: 0 auto;
+}
+
+/* --------------------------------------------------------------------------
+   Oben: Überschrift + kurze Zeile
+   -------------------------------------------------------------------------- */
+
+.price__intro {
+  margin: 0 0 clamp(24px, 3vw, 34px);
+  text-align: center;
+}
+
+.price__title {
+  margin: 0;
+  font-size: clamp(34px, 4.2vw, 56px);
+  font-weight: 600;
+  line-height: 1.08;
+  letter-spacing: -0.035em;
+  color: #fafafa;
+}
+
+
+/* Einblenden beim Reinscrollen */
+.price__intro,
+.price__switch,
+.price__stage {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.8s ease, transform 0.9s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.price.is-in .price__intro,
+.price.is-in .price__switch,
+.price.is-in .price__stage { opacity: 1; transform: none; }
+.price.is-in .price__switch { transition-delay: 0.08s; }
+.price.is-in .price__stage  { transition-delay: 0.16s; }
+
+/* --------------------------------------------------------------------------
+   Der Schalter zwischen den Plänen
+   Gleiche Machart wie die Seitenwahl im Dashboard, nur etwas größer.
+   -------------------------------------------------------------------------- */
+
+.price__switch {
+  display: flex;
+  justify-content: center;
+  margin-bottom: clamp(26px, 3.4vw, 38px);
+}
+
+.pswitch {
+  position: relative;
+  display: flex;
+  gap: 2px;
+  padding: 5px;
+  border-radius: 999px;
+  background: rgba(16, 18, 28, 0.72);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.16),
+    0 0 0 1px rgba(255, 255, 255, 0.12),
+    0 14px 34px rgba(0, 0, 0, 0.5);
+  -webkit-backdrop-filter: blur(14px) saturate(160%);
+  backdrop-filter: blur(14px) saturate(160%);
+}
+
+/* Die weiße Pille hinter dem aktiven Plan – Position und Breite misst js/pricing.js */
+.pswitch__glider {
+  position: absolute;
+  top: 0; left: 0;
+  height: 40px;
+  border-radius: 999px;
+  background: #fff;
+  opacity: 0;
+  pointer-events: none;
+  transition: transform 0.45s cubic-bezier(0.32, 0.72, 0, 1), width 0.45s cubic-bezier(0.32, 0.72, 0, 1), opacity 0.3s ease;
+}
+
+.pswitch__item {
+  position: relative;
+  z-index: 1;
+  height: 40px;
+  margin: 0;
+  padding: 0 26px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.72);
+  font: 500 15px/1 var(--font);
+  letter-spacing: -0.01em;
+  cursor: pointer;
+  transition: color 0.25s ease, background-color 0.25s ease;
+}
+
+.pswitch__item:hover { color: #fff; background: rgba(255, 255, 255, 0.08); }
+.pswitch__item.is-active { color: #0a0d16; background: transparent; }
+.pswitch__item:focus-visible { outline: 2px solid #9ec0ff; outline-offset: 3px; }
+
+/* Ohne gemessene Pille (noch kein JavaScript gelaufen) trägt der aktive Plan selbst die Fläche */
+.pswitch:not(.is-ready) .pswitch__item.is-active { background: #fff; }
+
+/* --------------------------------------------------------------------------
+   Die Karten: liegen übereinander, sichtbar ist nur die gewählte
+   -------------------------------------------------------------------------- */
+
+/* Keine eigene Breite: die Buehne fuellt .price__inner und ist damit genau so
+   breit wie das Video im Hero (beide haengen an --frame-side). */
+.price__stage {
+  display: grid;
+  align-items: stretch;
+}
+
+/* Innen zwei Spalten: links Name, Preis und (beim Team) der Regler,
+   rechts die Leistungen. Schmal stehen sie untereinander (Block ganz unten). */
+.price__card {
+  grid-area: 1 / 1;
+  display: grid;
+  grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
+  column-gap: clamp(28px, 4vw, 64px);
+  align-items: start;
+  padding: clamp(24px, 3vw, 46px);
+  border-radius: 26px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.058), rgba(255, 255, 255, 0.022));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.14),
+    0 0 0 1px rgba(255, 255, 255, 0.09),
+    0 30px 70px rgba(0, 0, 0, 0.5);
+  -webkit-backdrop-filter: blur(16px) saturate(150%);
+  backdrop-filter: blur(16px) saturate(150%);
+
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(12px) scale(0.985);
+  transition: opacity 0.4s ease, transform 0.55s cubic-bezier(0.22, 1, 0.36, 1), visibility 0s linear 0.4s;
+}
+
+.price__card.is-active {
+  opacity: 1;
+  visibility: visible;
+  transform: none;
+  transition-delay: 0.08s, 0.08s, 0s;
+}
+
+/* Mit JavaScript liegen die Karten frei übereinander und die Bühne wird genau so
+   hoch wie die gewählte Karte – sonst bliebe unter der kürzeren Solo-Karte die
+   Höhe der längeren Team-Karte als Loch stehen. Die Höhe misst und setzt
+   js/pricing.js; .is-anim schaltet erst danach das weiche Wachsen dazu, damit
+   beim Laden nichts aufklappt. Ohne JavaScript bleibt das Raster oben stehen. */
+.price__stage.is-measured {
+  display: block;
+  position: relative;
+}
+
+.price__stage.is-measured.is-anim { transition: height 0.5s cubic-bezier(0.22, 1, 0.36, 1); }
+
+.price__stage.is-measured .price__card {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+}
+
+/* Schriftgroessen in der Karte: nur zwei. Der Planname und der Preis sind gross,
+   alles andere – „pro Monat“, der einmalige Betrag, die Zeile ueber dem Regler
+   und die Leistungen – ist --price-text. Keine Versalien, keine Zwischengroessen. */
+.price__card { --price-text: 15px; }
+
+.price__name {
+  margin: 0 0 clamp(14px, 1.8vw, 20px);
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  color: #fafafa;
+}
+
+/* Der Preis: große Zahl, daneben klein „pro Monat“ */
+.price__amount {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.price__num {
+  font-size: clamp(40px, 6vw, 58px);
+  font-weight: 600;
+  line-height: 1.05;
+  letter-spacing: -0.04em;
+  color: #fff;
+  /* der Stups beim Ändern dreht sich um die linke Kante, sonst wackelt die Zeile */
+  transform-origin: left center;
+}
+
+/* Kurzer Stups, wenn js/pricing.js eine neue Zahl schreibt */
+@keyframes price-bump {
+  0%   { transform: scale(1); }
+  40%  { transform: scale(1.04); }
+  100% { transform: scale(1); }
+}
+
+.price__num.is-bump { animation: price-bump 0.3s ease; }
+
+.price__per {
+  font-size: var(--price-text);
+  color: rgba(255, 255, 255, 0.55);
+}
+
+/* Die Zeile darunter: der einmalige Betrag */
+.price__once {
+  margin: 10px 0 0;
+  font-size: var(--price-text);
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+/* Betraege etwas heller als der Text drumherum – gleiche Schrift, nur Farbe */
+.price__once span,
+.price__team-head span span { color: rgba(255, 255, 255, 0.86); }
+
+/* --------------------------------------------------------------------------
+   Leistungen
+   -------------------------------------------------------------------------- */
+
+.price__list {
+  display: grid;
+  /* start: sonst zieht das Raster die Zeilen ueber die ganze Kartenhoehe
+     auseinander, weil die Spalte so hoch ist wie die Karte */
+  align-content: start;
+  gap: 14px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.price__feat {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  font-size: var(--price-text);
+  line-height: 1.45;
+  color: rgba(255, 255, 255, 0.82);
+}
+
+.price__check {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 21px; height: 21px;
+  margin-top: 1px;
+  border-radius: 50%;
+  background: rgba(120, 150, 255, 0.18);
+  box-shadow: inset 0 0 0 1px rgba(160, 185, 255, 0.35);
+  color: var(--pr-mix);
+}
+
+/* Rechte Spalte: die Trennlinie geht ueber die ganze Kartenhoehe, deshalb
+   stretch statt start. */
+.price__side {
+  align-self: stretch;
+  padding-left: clamp(22px, 2.8vw, 44px);
+  border-left: 1px solid rgba(255, 255, 255, 0.09);
+}
+
+
+/* --------------------------------------------------------------------------
+   Teamgröße: gestapelte Kreise und Regler
+   -------------------------------------------------------------------------- */
+
+.price__team {
+  margin-top: clamp(22px, 2.8vw, 28px);
+  padding: clamp(16px, 2.2vw, 20px) clamp(16px, 2.2vw, 20px) clamp(11px, 1.5vw, 13px);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.035);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+}
+
+.price__team-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: clamp(16px, 2.2vw, 20px);
+}
+
+.price__team-count,
+.price__team-seat {
+  font-size: var(--price-text);
+  color: rgba(255, 255, 255, 0.55);
+}
+
+/* Der Stapel: die Kreise liegen absolut nebeneinander und überlappen sich um
+   die Differenz aus --size und --step. Die Breite hier (--n = Nutzer - 1) ist
+   nur der Stand ohne JavaScript – sobald js/pricing.js läuft, setzt es die
+   Breite in Pixeln, und der Stapel schiebt sich beim Regeln weich auseinander.
+   (Chrome lässt eine Breite nicht weich wachsen, solange sie aus einer
+   Variablen im calc() kommt – deshalb die Pixel.) */
+.price__stack {
+  position: relative;
+  /* --size waechst mit dem Fenster. --step ist nur der Stand ohne JavaScript:
+     sobald js/pricing.js laeuft, rechnet es den Abstand so, dass alle Kreise in
+     die Spalte passen (sie ist schmaler als das Fenster). */
+  --size: clamp(26px, 5vw, 34px);
+  --step: clamp(11px, 2.4vw, 20px);
+  --n: 3;
+  width: calc(var(--n) * var(--step) + var(--size));
+  height: var(--size);
+  margin: 0 auto clamp(16px, 2.2vw, 20px);
+  transition: width 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.price__dot {
+  position: absolute;
+  top: 0;
+  left: calc(var(--i) * var(--step));
+  z-index: var(--i);   /* der neueste Kreis liegt oben */
+  display: grid;
+  /* Jeder Kreis wird rechts vom naechsten ueberdeckt; nur die linken --step
+     Pixel bleiben zu sehen. Deshalb steht das Kuerzel links, sonst waere es
+     halb verdeckt. Der letzte Kreis liegt ganz oben - dort steht es mittig. */
+  place-items: center start;
+  padding-left: 4px;
+  width: var(--size);
+  height: var(--size);
+  border-radius: 50%;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.17), rgba(255, 255, 255, 0.06)), #10131d;
+  /* der dunkle Ring ist der Spalt zwischen zwei Kreisen */
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.18),
+    0 0 0 2px rgba(6, 8, 15, 0.92),
+    0 6px 16px rgba(0, 0, 0, 0.4);
+  color: rgba(255, 255, 255, 0.78);
+  font-size: clamp(9px, 1.6vw, 11px);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  pointer-events: none;
+
+  opacity: 0;
+  transform: scale(0.4) translateY(6px);
+  transition:
+    opacity 0.28s ease,
+    transform 0.42s cubic-bezier(0.34, 1.56, 0.64, 1),
+    background 0.3s ease,
+    box-shadow 0.3s ease,
+    color 0.3s ease;
+}
+
+.price__dot.is-on { opacity: 1; transform: none; }
+
+/* Stehen die Kreise sehr eng (schmale Spalte, Telefon), waere vom Buchstaben
+   nur ein Rest zu sehen – dann bleiben die Kreise leer. Setzt js/pricing.js. */
+.price__stack.is-plain .price__dot { padding-left: 0; font-size: 0; }
+
+/* Der zuletzt dazugekommene Nutzer leuchtet - so sieht man, was sich ändert */
+.price__dot.is-last {
+  place-items: center;
+  padding-left: 0;
+  background: linear-gradient(180deg, #e2e9ff, #a9bdff);
+  color: #0a0d16;
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.55),
+    0 0 0 2px rgba(6, 8, 15, 0.92),
+    0 0 22px 4px rgba(120, 150, 255, 0.38);
+}
+
+/* Der Regler. Schiene und Griff sind selbst gezeichnet, den Füllstand setzt
+   js/pricing.js als --fill (in Prozent). */
+.price__range {
+  -webkit-appearance: none;
+  appearance: none;
+  display: block;
+  width: 100%;
+  height: 22px;
+  margin: 0;
+  background: transparent;
+  cursor: pointer;
+  --fill: 16%;
+}
+
+.price__range::-webkit-slider-runnable-track {
+  height: 6px;
+  border-radius: 999px;
+  background:
+    linear-gradient(90deg, var(--pr-mix), var(--pr-blue)) 0 0 / var(--fill) 100% no-repeat,
+    rgba(255, 255, 255, 0.12);
+}
+
+.price__range::-moz-range-track {
+  height: 6px;
+  border-radius: 999px;
+  background:
+    linear-gradient(90deg, var(--pr-mix), var(--pr-blue)) 0 0 / var(--fill) 100% no-repeat,
+    rgba(255, 255, 255, 0.12);
+}
+
+.price__range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px; height: 20px;
+  margin-top: -7px;   /* Griff auf die Mitte der 6px-Schiene */
+  border: 0;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.3),
+    0 2px 10px rgba(0, 0, 0, 0.45),
+    0 0 18px 3px rgba(120, 150, 255, 0.35);
+  transition: transform 0.15s ease;
+}
+
+.price__range::-moz-range-thumb {
+  width: 20px; height: 20px;
+  border: 0;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.3),
+    0 2px 10px rgba(0, 0, 0, 0.45),
+    0 0 18px 3px rgba(120, 150, 255, 0.35);
+  transition: transform 0.15s ease;
+}
+
+.price__range:hover::-webkit-slider-thumb,
+.price__range:active::-webkit-slider-thumb { transform: scale(1.12); }
+.price__range:hover::-moz-range-thumb,
+.price__range:active::-moz-range-thumb { transform: scale(1.12); }
+
+.price__range:focus { outline: none; }
+.price__range:focus-visible::-webkit-slider-thumb { outline: 2px solid #9ec0ff; outline-offset: 2px; }
+.price__range:focus-visible::-moz-range-thumb { outline: 2px solid #9ec0ff; outline-offset: 2px; }
+
+
+/* --------------------------------------------------------------------------
+   Schmal & reduzierte Bewegung
+   -------------------------------------------------------------------------- */
+
+/* Ab hier ist die Karte zu schmal fuer zwei Spalten: die Leistungen ruecken
+   unter den Preis, die Trennlinie legt sich quer. */
+@media (max-width: 900px) {
+  .price__card { grid-template-columns: minmax(0, 1fr); }
+
+  .price__side {
+    margin-top: clamp(26px, 3.5vw, 34px);
+    padding-left: 0;
+    padding-top: clamp(22px, 3vw, 28px);
+    border-left: 0;
+    border-top: 1px solid rgba(255, 255, 255, 0.09);
+  }
+}
+
+@media (max-width: 560px) {
+  .price { padding: 16px var(--frame-side, 20px) 90px; }
+  .price__card { border-radius: 22px; }
+  .pswitch__item { padding: 0 20px; }
+  .price__card { --price-text: 14.5px; }
+
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* Ohne Bewegung klebt die Sektion darueber nicht und ist nur so hoch wie ihr
+     Inhalt – dann gibt es keine Leere, in die hineingerueckt werden koennte. */
+  .price { margin-top: 0; }
+
+  .price__intro, .price__switch, .price__stage,
+  .price__card, .price__stack, .price__dot,
+  .pswitch__glider, .pswitch__item { transition: none; }
+  .price__range::-webkit-slider-thumb { transition: none; }
+  .price__num.is-bump { animation: none; }
+}
+
+
+/* ==========================================================================
+   Sektion „Kontakt“
+   Der Abschluss der Seite: Überschrift, zwei Zeilen, ein Button – sonst nichts.
+   Gleiche Handschrift wie darüber: weiches Leuchten dahinter, alles mittig,
+   Einblenden beim Reinscrollen über .contact.is-in (setzt js/contact.js).
+   Die drei Teile fahren nacheinander ein (Überschrift, Zeile, Button); der
+   Button selbst bleibt davon frei – die Bewegung liegt am Rahmen darum
+   (.contact__actions), damit sein eigener Hover-Stups kurz bleibt.
+   ========================================================================== */
+
+.contact {
+  position: relative;
+  display: grid;
+  place-items: center;
+  /* Höhe des Buttons – der Auslauf unten rechnet mit ihr. */
+  --contact-cta-h: 52px;
+  /* Unten bleibt eine halbe Bildhöhe frei. Am Seitenende steht der Button
+     dadurch in der Bildmitte statt am unteren Rand: man kann nach dem Button
+     noch ein Stück weiterscrollen, bis er mittig liegt.
+     Rechnung: halbe Bildhöhe minus halbe Buttonhöhe = Abstand von der
+     Buttonmitte zum Seitenende. Eine eigene min-height braucht die Sektion
+     deshalb nicht mehr – sie ist durch den Auslauf ohnehin bildschirmhoch. */
+  padding: clamp(90px, 15vh, 160px) var(--frame-side, 20px) calc(50vh - var(--contact-cta-h) / 2);
+  /* Kein eigener Hintergrund, wie in der Preis-Sektion: das --bg der Seite
+     liegt ohnehin dahinter und schneidet so nichts ab. */
+  background: transparent;
+  overflow: clip;
+  text-align: center;
+}
+
+/* Weiches Leuchten dahinter – etwas kleiner als in den Sektionen darüber,
+   die Sektion trägt ja nur drei Zeilen. Es hängt an .contact__inner, liegt
+   also mittig über den drei Zeilen und nicht im Auslauf darunter. */
+.contact__glow {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  /* Hinter Text und Button, aber über dem Seitenhintergrund – dafür sorgt das
+     isolation: isolate an .contact__inner. */
+  z-index: -1;
+  width: min(900px, 120vw);
+  height: 620px;
+  transform: translate(-50%, -50%);
+  /* Etwas kraeftiger als in den Sektionen darueber: hier steht sonst nichts,
+     der Punkt traegt die ganze Flaeche. */
+  background: radial-gradient(closest-side, rgba(120, 150, 255, 0.2), rgba(120, 150, 255, 0.05) 45%, transparent 75%);
+  filter: blur(50px);
+  pointer-events: none;
+  /* Atmen: der Punkt wird langsam größer und wieder kleiner. Bewusst träge und
+     mit wenig Hub – man soll es nur aus dem Augenwinkel merken, nicht ansehen.
+     Läuft erst, wenn die Sektion eingeblendet ist (.contact.is-in), damit nichts
+     im Hintergrund vor sich hin animiert. Stärke: die zwei Werte in
+     @keyframes contact-breathe (Größe 0.94–1.10, Helligkeit 0.55–1). */
+  will-change: transform, opacity;
+}
+
+.contact.is-in .contact__glow {
+  animation: contact-breathe 11s ease-in-out infinite alternate;
+}
+
+@keyframes contact-breathe {
+  from { transform: translate(-50%, -50%) scale(0.94); opacity: 0.55; }
+  to   { transform: translate(-50%, -50%) scale(1.10); opacity: 1; }
+}
+
+.contact__inner {
+  position: relative;
+  /* Eigener Stapel: das Leuchten darin (z-index: -1) bleibt dadurch hinter den
+     Zeilen, rutscht aber nicht hinter die Seite. */
+  isolation: isolate;
+  max-width: 720px;
+}
+
+.contact__title {
+  margin: 0 0 clamp(14px, 1.8vw, 20px);
+  font-size: clamp(34px, 4.2vw, 56px);
+  font-weight: 600;
+  line-height: 1.08;
+  letter-spacing: -0.035em;
+  color: #fafafa;
+}
+
+.contact__lead {
+  margin: 0 auto clamp(28px, 3.4vw, 40px);
+  max-width: 48ch;
+  font-size: clamp(15px, 1.3vw, 17.5px);
+  line-height: 1.55;
+  color: var(--muted);
+}
+
+.contact__actions {
+  display: flex;
+  justify-content: center;
+}
+
+/* Etwas größer als die Buttons im Hero – es ist der einzige auf der Seite,
+   der wirklich etwas auslöst. */
+.contact__cta {
+  height: 52px;
+  padding: 0 26px;
+  border-radius: 13px;
+  font-size: 16px;
+}
+
+/* Einblenden beim Reinscrollen */
+.contact__title,
+.contact__lead,
+.contact__actions {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.8s ease, transform 0.9s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.contact.is-in .contact__title,
+.contact.is-in .contact__lead,
+.contact.is-in .contact__actions { opacity: 1; transform: none; }
+.contact.is-in .contact__lead    { transition-delay: 0.08s; }
+.contact.is-in .contact__actions { transition-delay: 0.16s; }
+
+@media (max-width: 560px) {
+  /* Kleinerer Button -> der Auslauf unten rechnet mit der neuen Höhe. */
+  .contact { --contact-cta-h: 48px; }
+  .contact__cta { height: 48px; padding: 0 22px; font-size: 15px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .contact__title, .contact__lead, .contact__actions { transition: none; }
+  .contact.is-in .contact__glow { animation: none; }
+}

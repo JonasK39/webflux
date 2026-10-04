@@ -1,0 +1,513 @@
+/* ==========================================================================
+   webflux – Kontaktseite (kontakt.html)
+   Eine Glas-Karte mit dem Formular, von oben nach unten:
+     .kreasons   die vier Kacheln „Worum geht’s?“ (echte Radios, die Kachel ist das Label)
+     .kfold      klappt weich auf – Accounts (nur bei „Auftrag“) und Angaben
+     .kfield     ein Feld mit Beschriftung und Fehlerzeile
+     .kdone      die Dankeseite, ersetzt das Formular nach dem Absenden
+
+   Wiederverwendet aus der Preis-Sektion (css/style.css), damit beides gleich
+   aussieht: der Schalter .pswitch, die gestapelten Kreise .price__stack /
+   .price__dot, der Regler .price__range und der Kasten .price__team. Ihre
+   Farbvariablen (--pr-blue, --pr-mix) hängen dort an .price und stehen darum
+   hier noch einmal an .kt.
+
+   Zustände setzt js/kontakt.js:
+     .kfold.is-open          der Teil ist aufgeklappt
+     .pswitch__item.is-active  gewählter Plan (Schalter)
+     .kfield.is-invalid      Feld ist nicht ausgefüllt oder falsch
+   ========================================================================== */
+
+.kt {
+  position: relative;
+  min-height: 100vh;
+  min-height: 100svh;
+  /* Oben Platz für die schwebende Navigation */
+  padding: clamp(112px, 16vh, 160px) 20px clamp(80px, 12vh, 130px);
+  background: transparent;
+  overflow: clip;
+
+  --pr-blue: #7896ff;   /* Blau wie im Hintergrund-Leuchten */
+  --pr-mix:  #d2dcff;   /* dasselbe Blau mit Weiß gemischt */
+  --price-text: 15px;   /* Schriftgröße im Team-Kasten (kommt sonst von .price__card) */
+}
+
+.kt [hidden] { display: none !important; }
+
+/* Navigation ohne Button: gleichmäßiger Rand statt Platz für den Button rechts */
+.floating-nav--page { padding: 10px 18px; gap: 22px; }
+
+/* Weiches Leuchten dahinter – wie in den Sektionen der Startseite, atmet langsam.
+   Feste Höhe von oben statt Prozent: die Seite wächst, wenn Teile aufklappen,
+   und das Leuchten soll dabei nicht wandern. */
+.kt__glow {
+  position: absolute;
+  left: 50%;
+  top: 360px;
+  width: min(1000px, 130vw);
+  height: 760px;
+  transform: translate(-50%, -50%);
+  background: radial-gradient(closest-side, rgba(120, 150, 255, 0.19), rgba(120, 150, 255, 0.05) 45%, transparent 75%);
+  filter: blur(50px);
+  pointer-events: none;
+  will-change: transform, opacity;
+  animation: kt-breathe 11s ease-in-out infinite alternate;
+}
+
+@keyframes kt-breathe {
+  from { transform: translate(-50%, -50%) scale(0.94); opacity: 0.6; }
+  to   { transform: translate(-50%, -50%) scale(1.10); opacity: 1; }
+}
+
+.kt__inner {
+  position: relative;
+  max-width: 680px;
+  margin: 0 auto;
+}
+
+/* --------------------------------------------------------------------------
+   Kopf: Überschrift und eine Zeile
+   -------------------------------------------------------------------------- */
+
+.kt__intro {
+  margin: 0 0 clamp(28px, 4vw, 44px);
+  text-align: center;
+}
+
+.kt__title {
+  margin: 0 0 clamp(14px, 1.8vw, 20px);
+  font-size: clamp(34px, 4.2vw, 56px);
+  font-weight: 600;
+  line-height: 1.08;
+  letter-spacing: -0.035em;
+  color: #fafafa;
+}
+
+.kt__lead {
+  margin: 0 auto;
+  max-width: 44ch;
+  font-size: clamp(15px, 1.3vw, 17.5px);
+  line-height: 1.55;
+  color: var(--muted);
+}
+
+/* Einfahren beim Laden: Überschrift, Zeile, Karte nacheinander */
+@keyframes kt-rise {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: none; }
+}
+
+.kt__title,
+.kt__lead,
+.kt__card { animation: kt-rise 0.9s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.kt__lead { animation-delay: 0.08s; }
+.kt__card { animation-delay: 0.16s; }
+
+/* --------------------------------------------------------------------------
+   Die Karte – gleiches Glas wie die Preiskarten
+   -------------------------------------------------------------------------- */
+
+.kt__card {
+  padding: clamp(22px, 3.4vw, 40px);
+  border-radius: 26px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.058), rgba(255, 255, 255, 0.022));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.14),
+    0 0 0 1px rgba(255, 255, 255, 0.09),
+    0 30px 70px rgba(0, 0, 0, 0.5);
+  -webkit-backdrop-filter: blur(16px) saturate(150%);
+  backdrop-filter: blur(16px) saturate(150%);
+}
+
+/* --------------------------------------------------------------------------
+   Blöcke im Formular
+   -------------------------------------------------------------------------- */
+
+.kform__block {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+/* Ab dem zweiten Block trennt eine Linie – sie liegt im aufklappenden Teil,
+   zugeklappt zählt sie also nicht mit. */
+.kform__block--next {
+  margin-top: clamp(24px, 3vw, 32px);
+  padding-top: clamp(24px, 3vw, 32px);
+  border-top: 1px solid rgba(255, 255, 255, 0.09);
+}
+
+.kform__legend {
+  display: block;
+  width: 100%;
+  margin: 0 0 14px;
+  padding: 0;
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: #fafafa;
+}
+
+.kform__hint {
+  margin: -6px 0 16px;
+  font-size: 14.5px;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.kform__switch { display: flex; }
+
+/* --------------------------------------------------------------------------
+   Aufklappen: Höhe von 0 auf Inhalt über grid-template-rows
+   Zugeklappt ist der Inhalt unsichtbar (visibility) und damit auch nicht
+   mit Tab erreichbar. Der Innenrand von 16 px mit gleichem Minus-Rand lässt
+   Schein und Fokusrahmen von Kreisen und Regler nicht am Schnitt hängen.
+   -------------------------------------------------------------------------- */
+
+.kfold {
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    grid-template-rows 0.5s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 0.35s ease,
+    visibility 0s linear 0.5s;
+}
+
+.kfold.is-open {
+  grid-template-rows: 1fr;
+  opacity: 1;
+  visibility: visible;
+  transition-delay: 0s, 0.08s, 0s;
+}
+
+.kfold__in {
+  min-height: 0;
+  overflow: hidden;
+  margin: -16px;
+  padding: 16px;
+}
+
+/* Der Team-Kasten steht in einem Block, der selbst aufklappt */
+.kfold--team .price__team { margin-top: 18px; }
+
+/* --------------------------------------------------------------------------
+   Kacheln: Worum geht’s?
+   -------------------------------------------------------------------------- */
+
+.kreasons {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.kreason {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 88px;
+  padding: 17px 18px 18px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.035);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.09);
+  cursor: pointer;
+  transition: background 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease;
+}
+
+.kreason:hover {
+  background: rgba(255, 255, 255, 0.06);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.16);
+}
+
+/* Das echte Radio liegt unsichtbar über der ganzen Kachel: Klick, Tastatur
+   und Formular laufen darüber. */
+.kreason__input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.kreason__body {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.kreason__name {
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: #fafafa;
+}
+
+.kreason__sub {
+  font-size: 14px;
+  line-height: 1.4;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+/* Das Häkchen: leerer Ring, gewählt eine weiße Scheibe mit dunklem Haken */
+.kreason__mark {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 21px; height: 21px;
+  margin-top: 1px;
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.24);
+  color: #0a0d16;
+  transition: background 0.25s ease, box-shadow 0.25s ease;
+}
+
+.kreason__mark svg {
+  opacity: 0;
+  transform: scale(0.5);
+  transition: opacity 0.2s ease, transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.kreason:has(.kreason__input:checked) {
+  background: rgba(120, 150, 255, 0.13);
+  box-shadow: inset 0 0 0 1px rgba(170, 195, 255, 0.6), 0 0 28px rgba(120, 150, 255, 0.14);
+}
+
+.kreason:has(.kreason__input:checked) .kreason__mark {
+  background: #fff;
+  box-shadow: none;
+}
+
+.kreason:has(.kreason__input:checked) .kreason__mark svg { opacity: 1; transform: none; }
+
+.kreason:has(.kreason__input:focus-visible) { outline: 2px solid #9ec0ff; outline-offset: 3px; }
+
+/* --------------------------------------------------------------------------
+   Schalter Solo / Team – Label statt Button, sonst wie bei den Preisen
+   -------------------------------------------------------------------------- */
+
+.kt .pswitch__item {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.kt .pswitch__item:has(input:focus-visible) { outline: 2px solid #9ec0ff; outline-offset: 3px; }
+
+/* --------------------------------------------------------------------------
+   Felder
+   -------------------------------------------------------------------------- */
+
+.kfields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px 14px;
+}
+
+.kfield { min-width: 0; }
+.kfield--wide { grid-column: 1 / -1; }
+
+.kfield label {
+  display: block;
+  margin: 0 0 8px;
+  font-size: 14px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.kfield__opt {
+  margin-left: 6px;
+  font-weight: 400;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.kfield input,
+.kfield textarea {
+  display: block;
+  width: 100%;
+  margin: 0;
+  padding: 0 15px;
+  border: 0;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.04);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12);
+  color: #fff;
+  /* 16 px: kleiner zoomt Safari auf dem Telefon beim Antippen ins Feld */
+  font: 400 16px/1.4 var(--font);
+  letter-spacing: -0.01em;
+  transition: background 0.2s ease, box-shadow 0.2s ease;
+}
+
+.kfield input { height: 48px; }
+
+.kfield textarea {
+  min-height: 124px;
+  padding: 13px 15px;
+  resize: vertical;
+}
+
+.kfield input::placeholder,
+.kfield textarea::placeholder { color: rgba(255, 255, 255, 0.3); }
+
+.kfield input:hover,
+.kfield textarea:hover { background: rgba(255, 255, 255, 0.06); }
+
+.kfield input:focus,
+.kfield textarea:focus {
+  outline: none;
+  background: rgba(255, 255, 255, 0.06);
+  box-shadow: inset 0 0 0 1.5px #9ec0ff, 0 0 0 4px rgba(120, 150, 255, 0.16);
+}
+
+/* Fehler: roter Rand und eine Zeile darunter. Die Zeile ist ohne Fehler leer
+   und nimmt dann keinen Platz. */
+.kfield__err {
+  margin: 0;
+  font-size: 13.5px;
+  line-height: 1.4;
+  color: #ffb4b4;
+}
+
+.kfield__err:empty { display: none; }
+.kfield__err:not(:empty) { margin-top: 7px; }
+
+.kfield.is-invalid input,
+.kfield.is-invalid textarea {
+  box-shadow: inset 0 0 0 1px rgba(255, 130, 130, 0.75);
+}
+
+.kfield.is-invalid input:focus,
+.kfield.is-invalid textarea:focus {
+  box-shadow: inset 0 0 0 1.5px #ff9c9c, 0 0 0 4px rgba(255, 130, 130, 0.14);
+}
+
+/* --------------------------------------------------------------------------
+   Fuß: Hinweis und Absende-Button
+   -------------------------------------------------------------------------- */
+
+.kform__foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px 24px;
+  margin-top: clamp(22px, 2.8vw, 28px);
+}
+
+.kform__note {
+  margin: 0;
+  max-width: 32ch;
+  font-size: 14px;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.45);
+}
+
+/* Etwas größer als die Buttons im Hero, wie der Button der Kontakt-Sektion */
+.kt button.btn {
+  justify-content: center;
+  border: 0;
+  font-family: var(--font);
+  cursor: pointer;
+}
+
+.kform__submit {
+  flex: none;
+  height: 52px;
+  padding: 0 26px;
+  border-radius: 13px;
+  font-size: 16px;
+}
+
+/* --------------------------------------------------------------------------
+   Danke
+   -------------------------------------------------------------------------- */
+
+.kdone {
+  padding: clamp(8px, 2vw, 24px) 0;
+  text-align: center;
+  animation: kt-rise 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.kdone__mark {
+  display: grid;
+  place-items: center;
+  width: 56px; height: 56px;
+  margin: 0 auto 22px;
+  border-radius: 50%;
+  background: linear-gradient(180deg, #e2e9ff, #a9bdff);
+  color: #0a0d16;
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.55),
+    0 0 40px 6px rgba(120, 150, 255, 0.35);
+}
+
+.kdone__title {
+  margin: 0;
+  font-size: clamp(28px, 3.4vw, 38px);
+  font-weight: 600;
+  line-height: 1.12;
+  letter-spacing: -0.035em;
+  color: #fafafa;
+}
+
+.kdone__title:focus { outline: none; }
+
+.kdone__text {
+  margin: 12px auto 0;
+  max-width: 40ch;
+  font-size: 16px;
+  line-height: 1.55;
+  color: var(--muted);
+}
+
+/* Was gewählt wurde, als kleine Pille – und wohin die Antwort geht */
+.kdone__recap {
+  display: inline-block;
+  margin: 22px 0 0;
+  padding: 9px 16px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.05);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+  font-size: 14.5px;
+  line-height: 1.4;
+  color: rgba(255, 255, 255, 0.78);
+  overflow-wrap: anywhere;
+}
+
+.kdone__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 30px;
+}
+
+/* --------------------------------------------------------------------------
+   Schmal & reduzierte Bewegung
+   -------------------------------------------------------------------------- */
+
+@media (max-width: 560px) {
+  .kt { padding-left: 16px; padding-right: 16px; }
+  .kt__card { border-radius: 22px; }
+  .kfields { grid-template-columns: minmax(0, 1fr); }
+  .kform__foot { flex-direction: column-reverse; align-items: stretch; }
+  .kform__note { max-width: none; text-align: center; }
+  .kform__submit { width: 100%; height: 48px; font-size: 15px; }
+  .kt .pswitch__item { padding: 0 20px; }
+}
+
+@media (max-width: 420px) {
+  .kreasons { grid-template-columns: minmax(0, 1fr); }
+  .kreason { min-height: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .kt__glow { animation: none; }
+  .kt__title, .kt__lead, .kt__card, .kdone { animation: none; }
+  .kfold, .kreason, .kreason__mark, .kreason__mark svg,
+  .kfield input, .kfield textarea { transition: none; }
+}
