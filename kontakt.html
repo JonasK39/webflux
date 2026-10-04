@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Kontakt – Webflux</title>
+  <meta name="description" content="Schreib uns: Erstgespräch, Auftrag, Frage oder Support – sag kurz, worum es geht.">
+  <meta name="theme-color" content="#05070d">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/kontakt.css">
+</head>
+<body>
+
+  <!-- Navigation wie auf der Startseite, nur von Anfang an sichtbar und ohne Button
+       (der Button würde auf diese Seite selbst zeigen). -->
+  <nav class="floating-nav floating-nav--page is-visible" aria-label="Hauptnavigation">
+    <a class="floating-nav__link" href="index.html">Start</a>
+    <a class="floating-nav__link floating-nav__link--desktop" href="index.html#leistungen">Leistungen</a>
+    <a class="floating-nav__link is-active" href="kontakt.html" aria-current="page">Kontakt</a>
+  </nav>
+
+  <!-- ============ KONTAKTSEITE ============
+       Ein Formular in einer Glas-Karte, von oben nach unten:
+         1) Worum geht's?     vier Kacheln (Erstgespräch, Auftrag, Frage, Support)
+         2) Wie viele Accounts?   nur bei „Auftrag“: Solo oder Team, beim Team die
+                              Zahl der Accounts (gleiche Staffel 1–20 wie bei den Preisen)
+         3) Deine Angaben     erst sichtbar, wenn ein Grund gewählt ist
+       Die Teile 2 und 3 liegen in .kfold und klappen weich auf.
+
+       Mit nichts verbunden: Absenden prüft die Felder und zeigt die Dankeseite,
+       verschickt aber nichts. Die Stelle für später ist send() in js/kontakt.js.
+       Logik: js/kontakt.js, Aussehen: css/kontakt.css (Kreise, Regler und Schalter
+       kommen aus der Preis-Sektion in css/style.css). -->
+  <main class="kt">
+    <div class="kt__glow" aria-hidden="true"></div>
+
+    <div class="kt__inner">
+      <header class="kt__intro">
+        <h1 class="kt__title">Reden wir.</h1>
+        <p class="kt__lead">Sag uns kurz, worum es geht. Den Rest klären wir direkt mit dir.</p>
+      </header>
+
+      <div class="kt__card">
+
+        <form class="kform" id="kontakt-form" novalidate>
+
+          <!-- ---------- 1) Grund ----------
+               Pro Kachel stehen drei Texte am Radio, die js/kontakt.js beim Wählen einsetzt:
+                 data-button       Beschriftung des Absende-Buttons
+                 data-message      „required“ oder „optional“ für das Nachrichtenfeld
+                 data-placeholder  Platzhalter im Nachrichtenfeld -->
+          <fieldset class="kform__block">
+            <legend class="kform__legend">Worum geht’s?</legend>
+
+            <div class="kreasons">
+              <label class="kreason">
+                <input class="kreason__input" type="radio" name="grund" value="erstgespraech"
+                       data-button="Gespräch anfragen" data-message="optional"
+                       data-placeholder="Was soll ich vorab wissen? Zum Beispiel, wie dein Auftritt heute aussieht.">
+                <span class="kreason__body">
+                  <span class="kreason__name">Erstgespräch</span>
+                  <span class="kreason__sub">Kostenlos und unverbindlich</span>
+                </span>
+                <span class="kreason__mark" aria-hidden="true"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.6 9.6 18.2 20 6.4"/></svg></span>
+              </label>
+
+              <label class="kreason">
+                <input class="kreason__input" type="radio" name="grund" value="auftrag"
+                       data-button="Anfrage senden" data-message="optional"
+                       data-placeholder="Was soll entstehen? Alles, was uns beim Start hilft.">
+                <span class="kreason__body">
+                  <span class="kreason__name">Auftrag</span>
+                  <span class="kreason__sub">Du willst loslegen</span>
+                </span>
+                <span class="kreason__mark" aria-hidden="true"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.6 9.6 18.2 20 6.4"/></svg></span>
+              </label>
+
+              <label class="kreason">
+                <input class="kreason__input" type="radio" name="grund" value="frage"
+                       data-button="Frage senden" data-message="required"
+                       data-placeholder="Deine Frage zu Website, Dashboard oder Preisen.">
+                <span class="kreason__body">
+                  <span class="kreason__name">Frage</span>
+                  <span class="kreason__sub">Zu Website, Dashboard oder Preisen</span>
+                </span>
+                <span class="kreason__mark" aria-hidden="true"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.6 9.6 18.2 20 6.4"/></svg></span>
+              </label>
+
+              <label class="kreason">
+                <input class="kreason__input" type="radio" name="grund" value="support"
+                       data-button="Nachricht senden" data-message="required"
+                       data-placeholder="Was funktioniert nicht, und wo siehst du es?">
+                <span class="kreason__body">
+                  <span class="kreason__name">Support</span>
+                  <span class="kreason__sub">Du bist schon Kunde</span>
+                </span>
+                <span class="kreason__mark" aria-hidden="true"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.6 9.6 18.2 20 6.4"/></svg></span>
+              </label>
+            </div>
+          </fieldset>
+
+          <!-- ---------- 2) Accounts (nur bei „Auftrag“) ---------- -->
+          <div class="kfold" data-fold="accounts">
+            <div class="kfold__in">
+              <div class="kform__block kform__block--next" role="group" aria-labelledby="kf-accounts-title">
+                <p class="kform__legend" id="kf-accounts-title">Wie viele Accounts?</p>
+                <p class="kform__hint">Ein Account ist ein Zugang zum Dashboard. Solo ist einer, im Team wählst du die Zahl.</p>
+
+                <!-- Schalter wie bei den Preisen; die weiße Pille misst js/kontakt.js.
+                     Hier sind es Radios in Labels, damit Pfeiltasten und Formular von selbst gehen. -->
+                <div class="kform__switch">
+                  <div class="pswitch" role="radiogroup" aria-label="Solo oder Team">
+                    <span class="pswitch__glider" aria-hidden="true"></span>
+                    <label class="pswitch__item is-active">
+                      <input class="sr-only" type="radio" name="plan" value="solo" checked>
+                      Solo
+                    </label>
+                    <label class="pswitch__item">
+                      <input class="sr-only" type="radio" name="plan" value="team">
+                      Team
+                    </label>
+                  </div>
+                </div>
+
+                <!-- Teamgröße: Kreise und Regler wie bei den Preisen (js/kontakt.js baut die Kreise
+                     aus dem max des Reglers). Nur sichtbar, solange „Team“ gewählt ist. -->
+                <div class="kfold kfold--team" data-fold="team">
+                  <div class="kfold__in">
+                    <div class="price__team">
+                      <div class="price__team-head">
+                        <span class="price__team-count" aria-live="polite"><span data-count>4</span> Accounts</span>
+                      </div>
+
+                      <div class="price__stack" data-stack aria-hidden="true"></div>
+
+                      <input class="price__range" type="range" name="accounts" min="1" max="20" step="1" value="4" data-range aria-label="Anzahl der Accounts">
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ---------- 3) Angaben ---------- -->
+          <div class="kfold" data-fold="details">
+            <div class="kfold__in">
+              <div class="kform__block kform__block--next" role="group" aria-labelledby="kf-details-title">
+                <p class="kform__legend" id="kf-details-title">Deine Angaben</p>
+
+                <div class="kfields">
+                  <div class="kfield">
+                    <label for="kf-name">Name</label>
+                    <input id="kf-name" name="name" type="text" autocomplete="name" aria-describedby="kf-name-err">
+                    <p class="kfield__err" id="kf-name-err"></p>
+                  </div>
+
+                  <div class="kfield">
+                    <label for="kf-email">E-Mail</label>
+                    <input id="kf-email" name="email" type="email" autocomplete="email" inputmode="email" aria-describedby="kf-email-err">
+                    <p class="kfield__err" id="kf-email-err"></p>
+                  </div>
+
+                  <div class="kfield">
+                    <label for="kf-tel">Telefon <span class="kfield__opt">optional</span></label>
+                    <input id="kf-tel" name="telefon" type="tel" autocomplete="tel" inputmode="tel">
+                  </div>
+
+                  <div class="kfield">
+                    <label for="kf-office">Maklerbüro <span class="kfield__opt">optional</span></label>
+                    <input id="kf-office" name="buero" type="text" autocomplete="organization">
+                  </div>
+
+                  <div class="kfield kfield--wide">
+                    <label for="kf-message">Nachricht <span class="kfield__opt" data-message-opt>optional</span></label>
+                    <textarea id="kf-message" name="nachricht" rows="4" aria-describedby="kf-message-err"></textarea>
+                    <p class="kfield__err" id="kf-message-err"></p>
+                  </div>
+                </div>
+
+                <div class="kform__foot">
+                  <p class="kform__note">Wir nutzen deine Angaben nur, um dir zu antworten.</p>
+                  <button class="btn btn--primary kform__submit" type="submit" data-submit>Absenden</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </form>
+
+        <!-- ---------- Danke (ersetzt das Formular nach dem Absenden) ---------- -->
+        <div class="kdone" hidden>
+          <div class="kdone__mark" aria-hidden="true"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.6 9.6 18.2 20 6.4"/></svg></div>
+          <h2 class="kdone__title" tabindex="-1" data-done-title>Danke.</h2>
+          <p class="kdone__text">Wir melden uns bei dir.</p>
+          <p class="kdone__recap" data-done-recap></p>
+          <div class="kdone__actions">
+            <a class="btn btn--primary" href="index.html">Zur Startseite</a>
+            <button class="btn btn--secondary" type="button" data-again>Weitere Nachricht</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </main>
+
+  <script src="js/kontakt.js"></script>
+</body>
+</html>

@@ -1,0 +1,845 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Webflux – Websites, die verkaufen</title>
+  <meta name="description" content="webflux ist deine Website-Agentur: Wir bauen Websites, Onlineshops und Web-Apps, die verkaufen.">
+  <meta name="theme-color" content="#05070d">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- Schwebende Navigation (erscheint beim Scrollen, wie bei Superwhisper) -->
+  <nav class="floating-nav" aria-label="Hauptnavigation">
+    <a class="floating-nav__link is-active" href="#hero">Start</a>
+    <a class="floating-nav__link floating-nav__link--desktop" href="#leistungen">Leistungen</a>
+    <a class="floating-nav__link" href="#kontakt">Kontakt</a>
+    <a class="floating-nav__cta" href="#kontakt">Gespräch</a>
+  </nav>
+
+  <!-- ============ HERO ============ -->
+  <section class="hero" id="hero">
+    <div class="hero__sticky">
+      <div class="hero__frame">
+
+        <!-- Hintergrund-Clip ohne eingebackene Ränder – die Ränder schneidet die Seite selbst ab (js/main.js).
+             Aktuell: "nyc" (Skyline, 15 s, 25 Bilder/s). Der Clip liegt in Originalrichtung auf der Platte;
+             js/main.js spielt ihn rückwärts ab (data-reverse): Runterscrollen = die Skyline hinunter.
+             Alle Clips sind All-Intra kodiert (jedes Bild ein Keyframe), damit jedes Bild einzeln und schnell
+             decodierbar ist (Scrubben per Scroll). Drei Stufen, gleicher Ausschnitt:
+             3840×2160 (4K) ab 1601px Breite oder ab 1,25-fachem Gerätepixel-Verhältnis (Retina, Windows-Skalierung),
+             1920×1080 für übrige Desktops, bis 800px Breite die 720p-Version. -->
+        <div class="hero__video-stack">
+          <video class="hero__video" muted playsinline preload="none"
+                 poster="assets/nyc-poster.jpg" aria-hidden="true" data-reverse>
+            <source src="assets/nyc-scrub-4k.mp4" type="video/mp4"
+                    media="(min-width: 1601px), (min-width: 801px) and (min-resolution: 1.25dppx)">
+            <source src="assets/nyc-scrub.mp4" type="video/mp4" media="(min-width: 801px)">
+            <source src="assets/nyc-scrub-720.mp4" type="video/mp4">
+          </video>
+          <!-- Zweite, identische Ebene (gleiche Quellen!) – nur für den Rückfall ohne WebCodecs: zeigt bei der
+               langsamen Eigenbewegung das jeweils nächste Bild und wird darüber weich eingeblendet.
+               Deckkraft und Reihenfolge steuert js/main.js. -->
+          <video class="hero__video hero__video--blend" muted playsinline preload="none" aria-hidden="true" data-reverse>
+            <source src="assets/nyc-scrub-4k.mp4" type="video/mp4"
+                    media="(min-width: 1601px), (min-width: 801px) and (min-resolution: 1.25dppx)">
+            <source src="assets/nyc-scrub.mp4" type="video/mp4" media="(min-width: 801px)">
+            <source src="assets/nyc-scrub-720.mp4" type="video/mp4">
+          </video>
+          <!-- Hier zeichnet js/frames.js (WebCodecs) die Bilder – flüssiger als <video>, auch in 4K.
+               Die <video>-Elemente dienen dann nur als Poster-Halter und laden nichts (preload="none");
+               nur wenn der Browser WebCodecs nicht kann, laden und spielen sie den Clip wie früher. -->
+          <canvas class="hero__canvas" aria-hidden="true"></canvas>
+        </div>
+        <div class="hero__overlay" aria-hidden="true"></div>
+
+        <!-- Intro: Headline nur als Wortroller + kurze Beschreibung + zwei Buttons -->
+        <div class="hero__content">
+          <h1 class="hero__title">
+            <span class="sr-only">Digital. Anders. Besser. Webflux.</span>
+            <span class="hero__roll" aria-hidden="true">
+              <!-- Wörter hier anpassen: jedes <span class="hero__word"> ist ein Durchlauf -->
+              <span class="hero__roll-track">
+                <span class="hero__word">Digital.</span>
+                <span class="hero__word">Anders.</span>
+                <span class="hero__word">Besser.</span>
+                <span class="hero__word">Webflux.</span>
+              </span>
+            </span>
+          </h1>
+
+          <!-- Kurze Beschreibung unter der Headline (Text hier anpassen) -->
+          <p class="hero__sub">Websites für Immobilienmakler, die aus Besuchern Anfragen machen. <br>Klar im Design, schnell im Code, gemacht für mehr Aufträge.</p>
+
+          <div class="hero__actions">
+            <a class="btn btn--primary" href="#dashboard">Unser Dashboard</a>
+            <a class="btn btn--secondary" href="#kontakt">Kostenloses Gespräch</a>
+          </div>
+
+          <a class="hero__hint" href="#kontakt">
+            <span>Unverbindlich &amp; kostenlos</span>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
+          </a>
+        </div>
+
+        <!-- Demo-Block: erscheint beim Runterscrollen (Button im Supabase-Stil) -->
+        <div class="hero__demo" aria-hidden="true">
+          <p class="hero__demo-kicker">Lieber erst mal ansehen?</p>
+          <p class="hero__demo-text">In zwei Minuten zeigen wir dir, wie wir arbeiten.</p>
+          <a class="btn-demo" href="#demo">Demo</a>
+        </div>
+
+        <!-- Scroll-Hinweis -->
+        
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ MEHR ALS NUR EINE WEBSITE ============
+       Kompakter Aufbau: oben die Überschrift und eine kurze Zeile, darunter das
+       Video über die volle Breite, ganz unten der Liquid-Glass-Schalter.
+       Logik: js/more.js – data-tab am Schalter muss zu data-panel bei Zeile und
+       Video passen. -->
+  <section class="more more--stack" id="leistungen">
+    <div class="more__glow" aria-hidden="true"></div>
+    <div class="more__inner">
+
+      <!-- Oben: so wenig Text wie möglich (Zeilen hier anpassen) -->
+      <div class="more__head">
+        <h2 class="more__title">Mehr als nur eine Website.</h2>
+        <div class="more__details">
+          <p class="more__detail is-active" data-panel="design" id="more-panel-design" role="tabpanel" aria-labelledby="more-tab-design">Individuelles Design. Kein Baukasten.</p>
+          <p class="more__detail" data-panel="code" id="more-panel-code" role="tabpanel" aria-labelledby="more-tab-code">Sauberer Code. Blitzschnell geladen.</p>
+          <p class="more__detail" data-panel="dashboard" id="more-panel-dashboard" role="tabpanel" aria-labelledby="more-tab-dashboard">Dein Dashboard. Alles selbst änderbar.</p>
+        </div>
+      </div>
+
+      <!-- Darunter: Videos. Design läuft schon; Code und Dashboard sind noch Platzhalter.
+           Video einsetzen: in den passenden .more__placeholder ein
+           <video class="more__video" src="assets/leistung-xyz.mp4" muted playsinline preload="auto" disablepictureinpicture disableremoteplayback aria-hidden="true" tabindex="-1"></video>
+           legen und die .more__chrome, .more__skeleton + .more__soon darin entfernen.
+           Bewusst ohne loop und ohne autoplay: js/more.js startet das Video erst, wenn die Bühne wirklich im Bild
+           ist (und pausiert es, sobald man wegscrollt), und schaltet zum nächsten Punkt weiter, wenn es zu Ende ist.
+           Ein Panel ohne Video wechselt stattdessen nach SLIDE_MS (js/more.js).
+           Das Video hat keine Bedienelemente und reagiert nicht auf Klicks (css: pointer-events: none).
+           Design: helles Video (#fdfdfd) ohne Fensterleiste – .more__screen--film färbt die Fläche passend ein. -->
+      <div class="more__media">
+        <div class="more__stage">
+
+          <div class="more__screen more__screen--film is-active" data-panel="design">
+            <div class="more__placeholder">
+              <video class="more__video" src="assets/leistung-design.mp4" muted playsinline preload="auto" disablepictureinpicture disableremoteplayback aria-hidden="true" tabindex="-1"></video>
+            </div>
+          </div>
+
+          <div class="more__screen" data-panel="code">
+            <div class="more__chrome" aria-hidden="true"><i></i><i></i><i></i></div>
+            <div class="more__placeholder">
+              <div class="more__skeleton more__skeleton--code" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+              <span class="more__soon"><span class="more__play"><svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 4.5v15l12-7.5z"/></svg></span>Video folgt · Code</span>
+            </div>
+          </div>
+
+          <div class="more__screen" data-panel="dashboard">
+            <div class="more__chrome" aria-hidden="true"><i></i><i></i><i></i></div>
+            <div class="more__placeholder">
+              <div class="more__skeleton more__skeleton--dashboard" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+              <span class="more__soon"><span class="more__play"><svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 4.5v15l12-7.5z"/></svg></span>Video folgt · Dashboard</span>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Unter dem Video: je Punkt ein kurzer Text (data-panel wie bei Zeile, Video und Schalter) -->
+      <div class="more__captions">
+        <p class="more__caption is-active" data-panel="design">Deine Website entsteht von Grund auf neu – mit deinen Farben, deinem Stil und deinen Objekten im Mittelpunkt.</p>
+        <p class="more__caption" data-panel="code">Schlanker Code statt aufgeblähtem Baukasten: Deine Seite lädt schnell, läuft auf jedem Gerät und ist sauber für Suchmaschinen aufgebaut.</p>
+        <p class="more__caption" data-panel="dashboard">Anfragen beantworten, Objekte pflegen, Termine planen – alles an einem Ort, ohne Programmierkenntnisse und ohne uns anzurufen.</p>
+      </div>
+
+      <!-- Unten: Liquid-Glass-Schalter, nur Punkte. Fährt als Punkt aus und wird dann nach beiden Seiten
+           breit (beim Hochscrollen rückwärts); beim Hover wird der einzelne Punkt breiter und zeigt seinen Namen. -->
+      <div class="more__switch">
+        <div class="glass-switch" role="tablist" aria-label="Bereich wählen">
+          <button class="glass-switch__item is-active" type="button" role="tab" id="more-tab-design" data-tab="design" aria-selected="true" aria-controls="more-panel-design">
+            <span class="glass-switch__label">Design</span>
+          </button>
+          <button class="glass-switch__item" type="button" role="tab" id="more-tab-code" data-tab="code" aria-selected="false" aria-controls="more-panel-code" tabindex="-1">
+            <span class="glass-switch__label">Code</span>
+          </button>
+          <button class="glass-switch__item" type="button" role="tab" id="more-tab-dashboard" data-tab="dashboard" aria-selected="false" aria-controls="more-panel-dashboard" tabindex="-1">
+            <span class="glass-switch__label">Dashboard</span>
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ============ UNSER DASHBOARD ============
+       Aufbau: oben die Überschrift, darunter eine kurze Beschreibung, dann das Widget,
+       ganz unten die Seitenwahl (Übersicht / Immobilien / Anfragen / Kunden /
+       Kalender / Aufgaben / Routenplaner / Finanzen).
+       Das Widget ist ein Nachbau des echten Kunden-Dashboards mit Beispieldaten:
+       gleiche Farben und Bausteine, aber ohne Anmeldung und ohne Datenbank.
+       Logik: js/dashboard.js. Jeder Knopf mit data-dash-page zeigt die Seite mit
+       gleichem data-page – unten die Seitenwahl, in der Seitenleiste dieselben vier
+       Punkte. Kalender, Finanzen und Route baut das Skript aus den Daten, die oben
+       in js/dashboard.js stehen und sich dort ändern lassen; die Immobilien-Karten
+       stehen als HTML hier. -->
+  <section class="dash" id="dashboard">
+    <div class="dash__glow" aria-hidden="true"></div>
+    <div class="dash__inner">
+
+      <!-- Überschrift + kurze Beschreibung (Texte hier anpassen) -->
+      <header class="dash__intro">
+        <h2 class="dash__title">Unser Dashboard.</h2>
+        <p class="dash__lead">Zu jeder Website gehört deine eigene Verwaltung: Anfragen beantworten, Objekte pflegen, Termine planen, Zahlen im Blick behalten und Besichtigungen zur kürzesten Route sortieren. Klick dich unten durch die Seiten.</p>
+      </header>
+
+      <!-- ---------- Das Widget ---------- -->
+      <div class="dash__widget">
+
+        <!-- Fensterleiste -->
+        <div class="dash__chrome" aria-hidden="true">
+          <span class="dash__dots"><i></i><i></i><i></i></span>
+          <span class="dash__url">dashboard.webflux.de</span>
+          <span class="dash__user">SM</span>
+        </div>
+
+        <div class="dash__app">
+
+          <!-- Seitenleiste: zeigt die aktive Seite und schaltet ebenfalls um -->
+          <aside class="dash__sidebar">
+            <div class="dash__brand">
+              <span class="dash__logo" aria-hidden="true">
+                <svg viewBox="0 0 100 55" fill="none" stroke="currentColor" stroke-width="8.5" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M20 22 C24 38, 26 44, 34 44 C42 44, 44 26, 49 20 C54 14, 58 14, 63 20 C68 26, 70 44, 78 44 C84 44, 86 36, 92 18"/>
+                  <path d="M82 16 L94 16 L94 28"/>
+                </svg>
+              </span>
+              <span class="dash__brand-text">
+                <b>WEBFLUX</b>
+                <i>REAL ESTATE</i>
+              </span>
+            </div>
+
+            <!-- Dieselben acht Punkte wie in der Seitenwahl unter dem Widget -->
+            <nav class="dash__nav" aria-label="Dashboard-Bereiche">
+              <button class="dash__nav-item is-active" type="button" data-dash-page="uebersicht">
+                <svg class="dash__nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19.5V4.5M4 19.5h16"/><path d="M7.5 15.5l3.5-4.2 3 2.4 4.5-6.2"/></svg>
+                <span>Übersicht</span>
+              </button>
+              <button class="dash__nav-item" type="button" data-dash-page="immobilien">
+                <svg class="dash__nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 10.5 12 3.5l8.5 7"/><path d="M5.8 9.4V20h12.4V9.4"/><path d="M10 20v-5h4v5"/></svg>
+                <span>Immobilien</span>
+              </button>
+              <button class="dash__nav-item" type="button" data-dash-page="anfragen">
+                <svg class="dash__nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="5.5" width="17" height="13" rx="2.5"/><path d="M4 8l8 5.2L20 8"/></svg>
+                <span>Anfragen</span>
+                <span class="dash__nav-badge" data-nav-inbox>3</span>
+              </button>
+              <button class="dash__nav-item" type="button" data-dash-page="kunden">
+                <svg class="dash__nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9.5" cy="8.5" r="3.2"/><path d="M3.8 19.5c0-3.1 2.6-5.2 5.7-5.2s5.7 2.1 5.7 5.2"/><path d="M16.2 6.4a3.2 3.2 0 0 1 0 5.6M17.6 14.8c1.7.7 2.9 2.4 2.9 4.7"/></svg>
+                <span>Kunden</span>
+              </button>
+              <button class="dash__nav-item" type="button" data-dash-page="kalender">
+                <svg class="dash__nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="5.5" width="17" height="15" rx="2.5"/><path d="M3.5 10h17M8.5 3.5v4M15.5 3.5v4"/></svg>
+                <span>Kalender</span>
+              </button>
+              <button class="dash__nav-item" type="button" data-dash-page="aufgaben">
+                <svg class="dash__nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 7h10M10 12h10M10 17h7"/><path d="M3.8 6.6l1.4 1.4 2.3-2.5M3.8 11.6l1.4 1.4 2.3-2.5"/></svg>
+                <span>Aufgaben</span>
+              </button>
+              <button class="dash__nav-item" type="button" data-dash-page="route">
+                <svg class="dash__nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21.5s6.8-5.9 6.8-11.3A6.8 6.8 0 0 0 5.2 10.2C5.2 15.6 12 21.5 12 21.5z"/><circle cx="12" cy="10" r="2.4"/></svg>
+                <span>Routenplaner</span>
+              </button>
+              <button class="dash__nav-item" type="button" data-dash-page="finanzen">
+                <svg class="dash__nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h16"/><path d="M6.5 20v-6M11.5 20V6.5M16.5 20v-9"/></svg>
+                <span>Finanzen</span>
+              </button>
+            </nav>
+
+            <div class="dash__account" aria-hidden="true">
+              <span class="dash__account-avatar">SM</span>
+              <span class="dash__account-text"><b>Sophie Martens</b><i>Immobilien Martens</i></span>
+            </div>
+          </aside>
+
+          <!-- Der Bildschirm: alle vier Seiten liegen übereinander, sichtbar ist die aktive -->
+          <div class="dash__screen">
+
+            <!-- ---------- Seite: Übersicht ---------- -->
+            <section class="dash__page is-active" data-page="uebersicht" id="dash-panel-uebersicht" role="tabpanel" aria-labelledby="dash-tab-uebersicht">
+              <div class="dash__topbar">
+                <h3 class="dash__h3">Übersicht</h3>
+                <div class="dash__topbar-side">
+                  <span class="dash__hint" data-ov-date>&nbsp;</span>
+                </div>
+              </div>
+
+              <div class="dash__scroll">
+                <!-- Große Kennzahl mit Wellenform, darunter die vier Reiter -->
+                <div class="dpanel dmetric">
+                  <div class="dmetric__head">
+                    <svg class="dmetric__wave dmetric__wave--back" viewBox="0 0 420 100" preserveAspectRatio="none" aria-hidden="true">
+                      <path d="M-40 50 L0 50 C 20 40, 40 30, 60 50 C 80 70, 100 60, 120 50 C 140 40, 160 30, 180 50 C 200 70, 220 60, 240 50 C 260 40, 280 30, 300 50 C 320 70, 340 60, 360 50 C 380 40, 400 30, 420 50 L460 50 L460 100 L-40 100 Z"/>
+                    </svg>
+                    <svg class="dmetric__wave" viewBox="0 0 420 100" preserveAspectRatio="none" aria-hidden="true">
+                      <path d="M-40 50 L0 50 C 20 40, 40 30, 60 50 C 80 70, 100 60, 120 50 C 140 40, 160 30, 180 50 C 200 70, 220 60, 240 50 C 260 40, 280 30, 300 50 C 320 70, 340 60, 360 50 C 380 40, 400 30, 420 50 L460 50 L460 100 L-40 100 Z"/>
+                    </svg>
+                    <div class="dmetric__text">
+                      <p class="dmetric__label" data-ov-label>&nbsp;</p>
+                      <p class="dmetric__value" data-ov-value>&nbsp;</p>
+                      <p class="dmetric__desc" data-ov-desc>&nbsp;</p>
+                    </div>
+                  </div>
+                  <div class="dmetric__tabs" role="group" aria-label="Kennzahl wählen">
+                    <button class="dmetric__tab is-active" type="button" data-ov-tab="umsatz">Umsatz</button>
+                    <button class="dmetric__tab" type="button" data-ov-tab="gewinn">Reingewinn</button>
+                    <button class="dmetric__tab" type="button" data-ov-tab="objekte">Objekte</button>
+                    <button class="dmetric__tab" type="button" data-ov-tab="termine">Termine</button>
+                  </div>
+                </div>
+
+                <div class="dash__cols">
+                  <!-- Links: Jahresverlauf (baut js/dashboard.js) -->
+                  <div class="dpanel">
+                    <div class="dpanel__head">
+                      <h4 class="dpanel__title">Umsatzentwicklung</h4>
+                      <span class="dpanel__meta">12 Monate</span>
+                    </div>
+                    <div class="dov__chart" data-ov-chart></div>
+                  </div>
+
+                  <!-- Rechts: was heute ansteht und was von der Website hereinkam -->
+                  <div class="dash__stack">
+                    <div class="dpanel">
+                      <div class="dpanel__head">
+                        <h4 class="dpanel__title">Tagesüberblick</h4>
+                        <span class="dpanel__meta" data-ov-count>&nbsp;</span>
+                      </div>
+                      <div class="dpanel__body" data-ov-today></div>
+                    </div>
+                    <div class="dpanel">
+                      <div class="dpanel__head">
+                        <h4 class="dpanel__title">Neu von der Website</h4>
+                        <span class="dpanel__meta" data-ov-inbox-count>&nbsp;</span>
+                      </div>
+                      <div class="dpanel__body" data-ov-inbox></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <!-- ---------- Seite: Immobilien ---------- -->
+            <section class="dash__page" data-page="immobilien" id="dash-panel-immobilien" role="tabpanel" aria-labelledby="dash-tab-immobilien" hidden>
+              <div class="dash__topbar">
+                <h3 class="dash__h3">Immobilien-Bestand</h3>
+                <div class="dash__topbar-side">
+                  <!-- Filter: blenden die Karten unten nach data-typ / data-status ein und aus -->
+                  <div class="dash__filters" role="group" aria-label="Objekte filtern">
+                    <button class="dfilter is-active" type="button" data-filter="alle">Alle</button>
+                    <button class="dfilter" type="button" data-filter="kauf">Kauf</button>
+                    <button class="dfilter" type="button" data-filter="miete">Miete</button>
+                    <button class="dfilter" type="button" data-filter="verkauft">Verkauft</button>
+                  </div>
+                  <span class="dbtn dbtn--light">Objekt hinzufügen</span>
+                </div>
+              </div>
+
+              <!-- Objekte: je ein <article>. Neues Objekt = Block kopieren und Texte ändern.
+                   data-typ: kauf | miete – data-status: aktiv | entwurf | verkauft -->
+              <div class="dash__scroll">
+                <div class="dash__cards">
+
+                  <article class="dcard" data-typ="kauf" data-status="aktiv" style="--img: linear-gradient(135deg, rgba(140,160,255,.30), rgba(255,255,255,.06) 55%, rgba(200,150,255,.20));">
+                    <div class="dcard__img">
+                      <span class="dcard__badges"><span class="dchip dchip--solid">Kauf</span><span class="dchip">Aktiv</span></span>
+                    </div>
+                    <div class="dcard__body">
+                      <h4 class="dcard__title">Penthouse mit Dachterrasse</h4>
+                      <p class="dcard__loc">Schwabing, München</p>
+                      <ul class="dcard__facts"><li>4 Zimmer</li><li>168 m²</li><li>BJ 2019</li><li>Klasse A+</li></ul>
+                      <p class="dcard__match">7 passende Kunden</p>
+                    </div>
+                    <div class="dcard__foot"><span class="dcard__price">1.450.000 €</span><span class="dcard__acts" aria-hidden="true"><i></i><i></i><i></i></span></div>
+                  </article>
+
+                  <article class="dcard" data-typ="kauf" data-status="aktiv" style="--img: linear-gradient(135deg, rgba(255,190,140,.26), rgba(255,255,255,.06) 55%, rgba(140,180,255,.18));">
+                    <div class="dcard__img">
+                      <span class="dcard__badges"><span class="dchip dchip--solid">Kauf</span><span class="dchip">Aktiv</span></span>
+                    </div>
+                    <div class="dcard__body">
+                      <h4 class="dcard__title">Altbau-Wohnung am Gärtnerplatz</h4>
+                      <p class="dcard__loc">Isarvorstadt, München</p>
+                      <ul class="dcard__facts"><li>3 Zimmer</li><li>96 m²</li><li>BJ 1908</li><li>Klasse C</li></ul>
+                      <p class="dcard__match">4 passende Kunden</p>
+                    </div>
+                    <div class="dcard__foot"><span class="dcard__price">895.000 €</span><span class="dcard__acts" aria-hidden="true"><i></i><i></i><i></i></span></div>
+                  </article>
+
+                  <article class="dcard" data-typ="miete" data-status="aktiv" style="--img: linear-gradient(135deg, rgba(120,220,200,.26), rgba(255,255,255,.06) 55%, rgba(140,160,255,.18));">
+                    <div class="dcard__img">
+                      <span class="dcard__badges"><span class="dchip">Miete</span><span class="dchip">Aktiv</span></span>
+                    </div>
+                    <div class="dcard__body">
+                      <h4 class="dcard__title">Loft im Werksviertel</h4>
+                      <p class="dcard__loc">Berg am Laim, München</p>
+                      <ul class="dcard__facts"><li>2 Zimmer</li><li>88 m²</li><li>BJ 2021</li><li>Klasse A</li></ul>
+                      <p class="dcard__match">5 passende Kunden</p>
+                    </div>
+                    <div class="dcard__foot"><span class="dcard__price">2.150 € / mtl.</span><span class="dcard__acts" aria-hidden="true"><i></i><i></i><i></i></span></div>
+                  </article>
+
+                  <article class="dcard" data-typ="kauf" data-status="entwurf" style="--img: linear-gradient(135deg, rgba(190,255,180,.22), rgba(255,255,255,.06) 55%, rgba(120,190,255,.18));">
+                    <div class="dcard__img">
+                      <span class="dcard__badges"><span class="dchip dchip--solid">Kauf</span><span class="dchip dchip--draft">Entwurf</span></span>
+                    </div>
+                    <div class="dcard__body">
+                      <h4 class="dcard__title">Familienhaus mit Südgarten</h4>
+                      <p class="dcard__loc">Grünwald</p>
+                      <ul class="dcard__facts"><li>6 Zimmer</li><li>214 m²</li><li>BJ 2004</li><li>Klasse B</li></ul>
+                      <p class="dcard__match">2 passende Kunden</p>
+                    </div>
+                    <div class="dcard__foot"><span class="dcard__price">1.980.000 €</span><span class="dcard__acts" aria-hidden="true"><i></i><i></i><i></i></span></div>
+                  </article>
+
+                  <article class="dcard" data-typ="miete" data-status="aktiv" style="--img: linear-gradient(135deg, rgba(255,160,190,.22), rgba(255,255,255,.06) 55%, rgba(160,150,255,.18));">
+                    <div class="dcard__img">
+                      <span class="dcard__badges"><span class="dchip">Miete</span><span class="dchip">Aktiv</span></span>
+                    </div>
+                    <div class="dcard__body">
+                      <h4 class="dcard__title">Neubau-Erstbezug mit Balkon</h4>
+                      <p class="dcard__loc">Sendling, München</p>
+                      <ul class="dcard__facts"><li>3 Zimmer</li><li>74 m²</li><li>BJ 2024</li><li>Klasse A+</li></ul>
+                      <p class="dcard__match">9 passende Kunden</p>
+                    </div>
+                    <div class="dcard__foot"><span class="dcard__price">1.680 € / mtl.</span><span class="dcard__acts" aria-hidden="true"><i></i><i></i><i></i></span></div>
+                  </article>
+
+                  <article class="dcard" data-typ="kauf" data-status="verkauft" style="--img: linear-gradient(135deg, rgba(255,255,255,.12), rgba(255,255,255,.04) 55%, rgba(140,160,255,.12));">
+                    <div class="dcard__img">
+                      <span class="dcard__badges"><span class="dchip dchip--solid">Kauf</span><span class="dchip dchip--sold">Verkauft</span></span>
+                    </div>
+                    <div class="dcard__body">
+                      <h4 class="dcard__title">Stadthaus am Englischen Garten</h4>
+                      <p class="dcard__loc">Schwabing-Freimann, München</p>
+                      <ul class="dcard__facts"><li>5 Zimmer</li><li>186 m²</li><li>BJ 1996</li><li>Klasse B</li></ul>
+                      <p class="dcard__match">Übergabe am 12.05.</p>
+                    </div>
+                    <div class="dcard__foot"><span class="dcard__price">2.340.000 €</span><span class="dcard__acts" aria-hidden="true"><i></i><i></i><i></i></span></div>
+                  </article>
+
+                </div>
+                <p class="dash__empty" data-empty hidden>Keine Objekte in diesem Filter.</p>
+              </div>
+            </section>
+
+            <!-- ---------- Seite: Anfragen (Kontaktformular der Website) ---------- -->
+            <section class="dash__page" data-page="anfragen" id="dash-panel-anfragen" role="tabpanel" aria-labelledby="dash-tab-anfragen" hidden>
+              <div class="dash__topbar">
+                <h3 class="dash__h3">Kontaktformular-Eingänge</h3>
+                <div class="dash__topbar-side">
+                  <span class="dchip dchip--count" data-inbox-unread>&nbsp;</span>
+                  <button class="dbtn dbtn--light" type="button" data-inbox-readall>Alle als gelesen</button>
+                </div>
+              </div>
+
+              <div class="dash__split dash__split--list">
+                <!-- Links: die Eingänge (baut js/dashboard.js aus CONTACTS) -->
+                <div class="dpanel">
+                  <div class="dpanel__head">
+                    <h4 class="dpanel__title">Eingänge</h4>
+                    <span class="dpanel__meta" data-inbox-count>&nbsp;</span>
+                  </div>
+                  <div class="dpanel__body" data-inbox-list></div>
+                </div>
+
+                <!-- Rechts: die ausgewählte Anfrage im Klartext -->
+                <div class="dpanel" data-inbox-detail></div>
+              </div>
+            </section>
+
+            <!-- ---------- Seite: Kunden (Suchprofile + passende Objekte) ---------- -->
+            <section class="dash__page" data-page="kunden" id="dash-panel-kunden" role="tabpanel" aria-labelledby="dash-tab-kunden" hidden>
+              <div class="dash__topbar">
+                <h3 class="dash__h3">Kunden-Datenbank</h3>
+                <div class="dash__topbar-side">
+                  <span class="dash__hint">Kunde anklicken für das Suchprofil</span>
+                  <span class="dbtn dbtn--light">Kunde anlegen</span>
+                </div>
+              </div>
+
+              <div class="dash__split dash__split--list">
+                <!-- Links: die Kunden (baut js/dashboard.js aus CUSTOMERS) -->
+                <div class="dpanel">
+                  <div class="dpanel__head">
+                    <h4 class="dpanel__title">Kunden</h4>
+                    <span class="dpanel__meta" data-cust-count>&nbsp;</span>
+                  </div>
+                  <div class="dpanel__body" data-cust-list></div>
+                </div>
+
+                <!-- Rechts: Suchprofil und die dazu passenden Objekte -->
+                <div class="dpanel" data-cust-detail></div>
+              </div>
+            </section>
+
+            <!-- ---------- Seite: Kalender ---------- -->
+            <section class="dash__page" data-page="kalender" id="dash-panel-kalender" role="tabpanel" aria-labelledby="dash-tab-kalender" hidden>
+              <div class="dash__topbar">
+                <h3 class="dash__h3">Terminkalender</h3>
+                <div class="dash__topbar-side">
+                  <button class="dstep" type="button" data-cal-step="-1" aria-label="Vorheriger Monat">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>
+                  </button>
+                  <span class="dash__month" data-cal-label>&nbsp;</span>
+                  <button class="dstep" type="button" data-cal-step="1" aria-label="Nächster Monat">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
+                  </button>
+                </div>
+              </div>
+
+              <div class="dash__split">
+                <!-- Links: Monatsraster (baut js/dashboard.js) -->
+                <div class="dpanel dpanel--cal">
+                  <div class="dcal__weekdays" aria-hidden="true"><span>MO</span><span>DI</span><span>MI</span><span>DO</span><span>FR</span><span>SA</span><span>SO</span></div>
+                  <div class="dcal__grid" data-cal-grid></div>
+                </div>
+
+                <!-- Rechts: Termine des gewählten Tages -->
+                <div class="dpanel dpanel--day">
+                  <div class="dpanel__head">
+                    <h4 class="dpanel__title">Tagesübersicht</h4>
+                    <span class="dpanel__meta" data-cal-daylabel>&nbsp;</span>
+                  </div>
+                  <div class="dpanel__body" data-cal-events></div>
+                  <div class="dpanel__foot">
+                    <button class="dbtn dbtn--light dbtn--wide" type="button" data-cal-add>Neuer Termin</button>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <!-- ---------- Seite: Aufgaben ---------- -->
+            <section class="dash__page" data-page="aufgaben" id="dash-panel-aufgaben" role="tabpanel" aria-labelledby="dash-tab-aufgaben" hidden>
+              <div class="dash__topbar">
+                <h3 class="dash__h3">Aufgaben</h3>
+                <div class="dash__topbar-side">
+                  <!-- Filter: zeigen offene, erledigte oder alle Aufgaben -->
+                  <div class="dash__filters" role="group" aria-label="Aufgaben filtern">
+                    <button class="dfilter is-active" type="button" data-task-filter="offen">Offen</button>
+                    <button class="dfilter" type="button" data-task-filter="erledigt">Erledigt</button>
+                    <button class="dfilter" type="button" data-task-filter="alle">Alle</button>
+                  </div>
+                  <span class="dbtn dbtn--light">Neue Aufgabe</span>
+                </div>
+              </div>
+
+              <div class="dash__split dash__split--list">
+                <!-- Links: die Aufgaben (baut js/dashboard.js aus TASKS) -->
+                <div class="dpanel">
+                  <div class="dpanel__head">
+                    <h4 class="dpanel__title">Liste</h4>
+                    <span class="dpanel__meta" data-task-count>&nbsp;</span>
+                  </div>
+                  <div class="dpanel__body" data-task-list></div>
+                </div>
+
+                <!-- Rechts: die ausgewählte Aufgabe mit ihrer Checkliste -->
+                <div class="dpanel" data-task-detail></div>
+              </div>
+            </section>
+
+            <!-- ---------- Seite: Routenplaner ---------- -->
+            <section class="dash__page" data-page="route" id="dash-panel-route" role="tabpanel" aria-labelledby="dash-tab-route" hidden>
+              <div class="dash__topbar">
+                <h3 class="dash__h3">Routenplanung</h3>
+                <div class="dash__topbar-side">
+                  <!-- Umschalter: sortiert die Stopps nach Uhrzeit oder nach kürzester Strecke -->
+                  <div class="dash__filters" role="group" aria-label="Route sortieren">
+                    <button class="dfilter is-active" type="button" data-route-mode="zeit">Nach Uhrzeit</button>
+                    <button class="dfilter" type="button" data-route-mode="strecke">Kürzeste Strecke</button>
+                  </div>
+                  <button class="dbtn dbtn--light" type="button" data-route-plan>Route planen</button>
+                </div>
+              </div>
+
+              <div class="dash__split dash__split--route">
+                <!-- Links: die Termine des Tages (baut js/dashboard.js aus ROUTE_STOPS) -->
+                <div class="dpanel">
+                  <div class="dpanel__head">
+                    <h4 class="dpanel__title">Termine heute</h4>
+                    <span class="dpanel__meta" data-route-count>&nbsp;</span>
+                  </div>
+                  <div class="dpanel__body" data-route-day></div>
+                </div>
+
+                <!-- Rechts: Karte, Kennzahlen und die berechnete Reihenfolge -->
+                <div class="dpanel dpanel--route">
+                  <div class="droute__empty" data-route-empty>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 3.5 3.5 6v14.5L9 18l6 2.5 5.5-2.5V3.5L15 6 9 3.5z"/><path d="M9 3.5V18M15 6v14.5"/></svg>
+                    <p>Auf „Route planen“ drücken – die Besichtigungen werden zur kürzesten Fahrt sortiert.</p>
+                  </div>
+                  <div class="droute__result" data-route-result hidden>
+                    <div class="droute__map" data-route-map></div>
+                    <div class="droute__summary" data-route-summary></div>
+                    <div class="droute__list" data-route-list></div>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <!-- ---------- Seite: Finanzen ---------- -->
+            <section class="dash__page" data-page="finanzen" id="dash-panel-finanzen" role="tabpanel" aria-labelledby="dash-tab-finanzen" hidden>
+              <div class="dash__topbar">
+                <h3 class="dash__h3">Einnahmen &amp; Ausgaben</h3>
+                <div class="dash__topbar-side">
+                  <span class="dash__hint">Monat im Diagramm anklicken</span>
+                </div>
+              </div>
+
+              <div class="dash__scroll">
+                <!-- Kennzahlen des gewählten Monats -->
+                <div class="dkpis">
+                  <div class="dkpi"><span class="dkpi__label">Einnahmen</span><span class="dkpi__value" data-fin-in>&nbsp;</span></div>
+                  <div class="dkpi"><span class="dkpi__label">Ausgaben</span><span class="dkpi__value" data-fin-out>&nbsp;</span></div>
+                  <div class="dkpi dkpi--sum"><span class="dkpi__label">Ergebnis</span><span class="dkpi__value" data-fin-sum>&nbsp;</span></div>
+                </div>
+
+                <!-- Diagramm: zwei Säulen je Monat (baut js/dashboard.js) -->
+                <div class="dpanel dpanel--chart">
+                  <div class="dpanel__head">
+                    <h4 class="dpanel__title">Cashflow der letzten 6 Monate</h4>
+                    <span class="dlegend" aria-hidden="true"><i class="dlegend__in"></i>Einnahmen<i class="dlegend__out"></i>Ausgaben</span>
+                  </div>
+                  <div class="dchart" data-fin-chart></div>
+                </div>
+
+                <!-- Buchungen des gewählten Monats -->
+                <div class="dpanel">
+                  <div class="dpanel__head">
+                    <h4 class="dpanel__title">Letzte Buchungen</h4>
+                    <span class="dpanel__meta" data-fin-month>&nbsp;</span>
+                  </div>
+                  <div class="dtable" data-fin-table></div>
+                </div>
+              </div>
+            </section>
+
+          </div>
+        </div>
+      </div>
+
+      <!-- ---------- Seitenwahl unter dem Widget ---------- -->
+      
+
+    </div>
+  </section>
+
+  <!-- ============ EIN SYSTEM. ZWEI SEITEN. ============
+       Überschrift, eine kurze Beschreibung, zwei Wörter und der Strich dazwischen.
+       Die Sektion ist doppelt so hoch wie der Bildschirm und klebt mit ihrer
+       oberen Hälfte fest (position: sticky): Sobald sie mittig im Bild steht,
+       hängt man kurz – und genau in dieser Strecke zieht sich der Strich von
+       „Website“ zu „Dashboard“. Danach scrollt die Seite normal weiter.
+       Wie lange man hängt, steuert --sys-vh in css/style.css.
+       Logik: js/system.js – setzt --p (0..1) am Verbinder und .is-linked an der
+       Sektion. Farbe des Strichs: das Blau des Hintergrund-Leuchtens
+       (rgba(120, 150, 255, …)), zur Mitte hin mit Weiß gemischt. -->
+  <section class="sys" id="system">
+    <div class="sys__sticky">
+      <div class="sys__glow" aria-hidden="true"></div>
+      <!-- Überschrift und Beschreibung hängen über der Mitte ... -->
+      <header class="sys__intro">
+        <h2 class="sys__title">Ein System. Zwei Seiten.</h2>
+        <p class="sys__lead">Dieselbe Anwendung – vorne der Auftritt für deine Kunden, hinten die Verwaltung für dich.</p>
+      </header>
+
+      <!-- ... und das hier, die Animation, sitzt genau in der Bildschirmmitte -->
+      <div class="sys__pair">
+        <span class="sys__word sys__word--web">Website</span>
+
+        <!-- Der Strich. Reine Grafik, deshalb aria-hidden. Vorher ist nichts
+             zu sehen – kein vorgezeichneter Weg, die Enden tauchen erst auf,
+             wenn der Strich sie erreicht:
+             __beam = weicher Schein hinter dem Strich
+             __line = der Strich selbst
+             __head = Lichtpunkt an der Spitze, solange gezogen wird
+             __node = die beiden Enden an den Wörtern -->
+        <div class="sys__connect" aria-hidden="true">
+          <span class="sys__beam"></span>
+          <span class="sys__line"></span>
+          <span class="sys__head"></span>
+          <span class="sys__node sys__node--start"></span>
+          <span class="sys__node sys__node--end"></span>
+        </div>
+
+        <span class="sys__word sys__word--dash">Dashboard</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ PREISE ============
+       Aufbau: Überschrift, darunter der Schalter zwischen den zwei Plänen,
+       darunter die Karte des gewählten Plans. Die Karte ist so breit wie das
+       Video im Hero (Seitenabstand --frame-side) und innen zweispaltig: links
+       Name und Preis, rechts die Leistungen. Beide Karten liegen übereinander,
+       sichtbar ist nur die gewählte.
+
+       So wenig Text wie möglich: keine Beschreibung unter der Überschrift, keine
+       Zeile unter dem Plannamen, keine Zwischenüberschriften. Und eine Schrift-
+       größe für alles außer Planname und Preis.
+
+       Beim Team-Plan steht links unter dem Preis der Regler für die Teamgröße:
+       darüber die gestapelten Kreise – einer pro Nutzer, jeder neue schiebt sich
+       rechts dazu –, der Preis darüber rechnet sich selbst aus.
+
+       Die Zahlen stehen nicht im Skript, sondern hier an der Sektion:
+         data-base   Grundpreis pro Monat (beide Pläne)
+         data-seat   pro Nutzer pro Monat (nur Team)
+         data-once   einmalig für den Aufbau
+       Preisänderung ist damit reines HTML. Die Zahlen im Text darunter sind nur
+       der Stand ohne JavaScript; js/pricing.js schreibt sie sofort neu.
+       Logik: js/pricing.js -->
+  <section class="price" id="preise" data-base="120" data-seat="89" data-once="1000">
+    <div class="price__glow" aria-hidden="true"></div>
+    <div class="price__inner">
+
+      <header class="price__intro">
+        <h2 class="price__title">Preise.</h2>
+      </header>
+
+      <!-- Der Schalter zwischen den Plänen. Die weiße Pille dahinter misst
+           js/pricing.js; ein Klick rollt außerdem zur Karte. -->
+      <div class="price__switch">
+        <div class="pswitch" role="tablist" aria-label="Plan wählen">
+          <span class="pswitch__glider" aria-hidden="true"></span>
+          <button class="pswitch__item is-active" type="button" role="tab" id="price-tab-solo" data-plan="solo" aria-selected="true" aria-controls="price-panel-solo">Solo</button>
+          <button class="pswitch__item" type="button" role="tab" id="price-tab-team" data-plan="team" aria-selected="false" aria-controls="price-panel-team" tabindex="-1">Team</button>
+        </div>
+      </div>
+
+      <div class="price__stage">
+
+        <!-- ---------- Solo ---------- -->
+        <article class="price__card is-active" data-plan="solo" id="price-panel-solo" role="tabpanel" aria-labelledby="price-tab-solo">
+
+          <div class="price__main">
+            <h3 class="price__name">Solo</h3>
+
+            <div class="price__amount">
+              <span class="price__num" data-price-month>120 €</span>
+              <span class="price__per">pro Monat</span>
+            </div>
+            <p class="price__once">+ <span data-price-once>1.000 €</span> einmalig</p>
+          </div>
+
+          <ul class="price__side price__list">
+            <li class="price__feat">
+              <span class="price__check" aria-hidden="true"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.6 9.6 18.2 20 6.4"/></svg></span>
+              <span>Volle Website</span>
+            </li>
+            <li class="price__feat">
+              <span class="price__check" aria-hidden="true"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.6 9.6 18.2 20 6.4"/></svg></span>
+              <span>Webflux Intelligence (eingeschränkt)</span>
+            </li>
+          </ul>
+        </article>
+
+        <!-- ---------- Team ---------- -->
+        <article class="price__card" data-plan="team" id="price-panel-team" role="tabpanel" aria-labelledby="price-tab-team" aria-hidden="true">
+
+          <div class="price__main">
+            <h3 class="price__name">Team</h3>
+
+            <div class="price__amount">
+              <span class="price__num" data-price-month>476 €</span>
+              <span class="price__per">pro Monat</span>
+            </div>
+            <p class="price__once">+ <span data-price-once>1.000 €</span> einmalig</p>
+
+            <!-- Teamgröße: Kreise und Regler. Die Kreise baut js/pricing.js aus dem
+                 max des Reglers – wer mehr Nutzer zulassen will, ändert nur max. -->
+            <div class="price__team">
+              <div class="price__team-head">
+                <span class="price__team-count" aria-live="polite"><span data-price-count>4</span> Nutzer</span>
+                <span class="price__team-seat"><span data-price-seat>89 €</span> je Nutzer</span>
+              </div>
+
+              <div class="price__stack" data-price-stack aria-hidden="true"></div>
+
+              <input class="price__range" type="range" min="1" max="20" step="1" value="4" data-price-range aria-label="Teamgröße in Nutzern">
+            </div>
+          </div>
+
+          <ul class="price__side price__list">
+            <li class="price__feat">
+              <span class="price__check" aria-hidden="true"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.6 9.6 18.2 20 6.4"/></svg></span>
+              <span>Volle Website</span>
+            </li>
+            <li class="price__feat">
+              <span class="price__check" aria-hidden="true"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.6 9.6 18.2 20 6.4"/></svg></span>
+              <span>Webflux Intelligence (voll)</span>
+            </li>
+            <li class="price__feat">
+              <span class="price__check" aria-hidden="true"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.6 9.6 18.2 20 6.4"/></svg></span>
+              <span>KI-Tools</span>
+            </li>
+            <li class="price__feat">
+              <span class="price__check" aria-hidden="true"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.6 9.6 18.2 20 6.4"/></svg></span>
+              <span>Alle Team-Tools</span>
+            </li>
+          </ul>
+        </article>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ KONTAKT ============
+       Die letzte Sektion und der Abschluss der Seite: Überschrift, zwei Zeilen,
+       ein Button – kein Formular. Wer hier ankommt, hat genug gelesen; der
+       nächste Schritt soll ein Klick sein, kein Ausfüllen.
+
+       Aufbau wie in den Sektionen darüber: weiches Leuchten dahinter, alles
+       mittig, Einblenden beim Reinscrollen über .contact.is-in (js/contact.js).
+       Das Leuchten hängt an .contact__inner und nicht an der Sektion, weil
+       unter dem Button noch eine halbe Bildhöhe Auslauf steht (css/style.css)
+       – es soll über den drei Zeilen liegen, nicht in der leeren Fläche.
+
+       Der Button führt zur Kontaktseite (kontakt.html): Grund wählen, bei einem
+       Auftrag Solo oder Team mit der Zahl der Accounts, Angaben machen. Die Seite
+       ist noch mit nichts verbunden – sie verschickt nichts (Stelle dafür:
+       send() in js/kontakt.js). -->
+  <section class="contact" id="kontakt">
+    <div class="contact__inner">
+      <div class="contact__glow" aria-hidden="true"></div>
+
+      <h2 class="contact__title">Reden wir.</h2>
+      <p class="contact__lead">Zwanzig Minuten, in denen wir uns deinen Auftritt ansehen und dir zeigen, wie Website und Dashboard bei dir aussehen würden. Ohne Vorbereitung, ohne Kosten.</p>
+
+      <div class="contact__actions">
+        <a class="btn btn--primary contact__cta" href="kontakt.html">Kostenloses Erstgespräch</a>
+      </div>
+    </div>
+  </section>
+
+  <script src="js/frames.js"></script>
+  <script src="js/main.js"></script>
+  <script src="js/more.js"></script>
+  <script src="js/dashboard.js"></script>
+  <script src="js/system.js"></script>
+  <script src="js/pricing.js"></script>
+  <script src="js/contact.js"></script>
+</body>
+</html>
